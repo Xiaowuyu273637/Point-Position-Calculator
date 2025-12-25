@@ -2,90 +2,191 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>五孔计算器</title>
-    
-    <!-- PWA支持 -->
-    <link rel="manifest" href="./manifest.json">
-    <meta name="theme-color" content="#4285f4">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="description" content="专业的五孔计算工具，支持多种模板和组合计算">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>五孔计算器 - 递增计算版</title>
     
     <style>
-        /* 保持原有样式不变 */
+        :root {
+            /* 浅色主题变量 */
+            --bg-color: #f9f9f9;
+            --surface-color: #ffffff;
+            --text-color: #333333;
+            --text-secondary: #666666;
+            --primary-color: #4285f4;
+            --primary-light: #e8f4fd;
+            --secondary-color: #0f9d58;
+            --danger-color: #ea4335;
+            --warning-color: #ff9800;
+            --accent-color: #9c27b0;
+            --border-color: #ddd;
+            --shadow-color: rgba(0, 0, 0, 0.1);
+            --input-bg: #ffffff;
+            --table-header-bg: #f2f2f2;
+            --code-bg: #f1f1f1;
+            --toggle-bg: #ffffff;
+            --toggle-shadow: rgba(0, 0, 0, 0.15);
+            /* 画布颜色变量 */
+            --canvas-text-color: #333333;
+            --canvas-axis-color: #ddd;
+            --canvas-point-color: #4285f4;
+            --canvas-center-color: #0f9d58;
+            --canvas-start-color: #ea4335;
+            /* 移动端优化变量 */
+            --touch-target-size: 44px;
+        }
+
+        [data-theme="dark"] {
+            /* 深色主题变量 */
+            --bg-color: #1a1a1a;
+            --surface-color: #2d2d2d;
+            --text-color: #e0e0e0;
+            --text-secondary: #b0b0b0;
+            --primary-color: #5c9dff;
+            --primary-light: #2a3b57;
+            --secondary-color: #34a853;
+            --danger-color: #ea4335;
+            --warning-color: #ff9800;
+            --accent-color: #bb86fc;
+            --border-color: #444;
+            --shadow-color: rgba(0, 0, 0, 0.3);
+            --input-bg: #3d3d3d;
+            --table-header-bg: #3a3a3a;
+            --code-bg: #2a2a2a;
+            --toggle-bg: #1a1a1a;
+            --toggle-shadow: rgba(0, 0, 0, 0.5);
+            /* 画布颜色变量 - 深色主题 */
+            --canvas-text-color: #e0e0e0;
+            --canvas-axis-color: #666; /* 修改：加深色主题轴线颜色，使其可见 */
+            --canvas-point-color: #5c9dff;
+            --canvas-center-color: #34a853;
+            --canvas-start-color: #ea4335;
+        }
+
+        * {
+            transition: background-color 0.3s ease, border-color 0.3s ease;
+            -webkit-tap-highlight-color: transparent;
+        }
+
         body {
-            font-family: Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             max-width: 100%;
             margin: 0;
             padding: 15px;
             box-sizing: border-box;
             position: relative;
-            background: #f9f9f9;
+            background: var(--bg-color);
+            color: var(--text-color);
             min-height: 100vh;
+            -webkit-text-size-adjust: 100%;
+            -moz-text-size-adjust: 100%;
+            -ms-text-size-adjust: 100%;
+            text-size-adjust: 100%;
+            /* 修复：允许页面滚动 */
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
         }
+        
         .calculator {
-            background: white;
+            background: var(--surface-color);
             padding: 15px;
             border-radius: 8px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 5px var(--shadow-color);
+            margin-bottom: 20px;
         }
+        
         h2 {
-            color: #4285f4;
+            color: var(--primary-color);
             margin-top: 0;
             font-size: 1.5em;
         }
+        
         .input-section {
-            background: #e0e0e0;
+            background: var(--primary-light);
             padding: 10px;
             border-radius: 4px;
             margin-bottom: 15px;
+            border-left: 4px solid var(--primary-color);
         }
+        
         .input-group {
             margin-bottom: 10px;
         }
+        
         label {
             display: block;
             margin-bottom: 5px;
             font-weight: bold;
             font-size: 0.9em;
+            color: var(--text-color);
         }
+        
         input {
             width: 100%;
-            padding: 8px;
-            border: 1px solid #ddd;
+            padding: 12px; /* 增大padding便于触摸 */
+            border: 1px solid var(--border-color);
             border-radius: 4px;
             box-sizing: border-box;
             font-size: 16px; /* 防止iOS缩放 */
+            background: var(--input-bg);
+            color: var(--text-color);
+            min-height: var(--touch-target-size);
         }
+        
         button {
-            background: #4285f4;
+            background: var(--primary-color);
             color: white;
             border: none;
-            padding: 10px;
+            padding: 12px;
             border-radius: 4px;
             cursor: pointer;
             margin-top: 5px;
             width: 100%;
             font-size: 0.9em;
-            min-height: 44px; /* 触摸友好 */
+            min-height: var(--touch-target-size);
+            transition: opacity 0.3s ease, transform 0.1s ease;
+            touch-action: manipulation;
         }
+        
+        button:active {
+            transform: scale(0.98);
+        }
+        
+        button:hover {
+            opacity: 0.9;
+        }
+        
         .btn-red {
-            background: #ea4335;
+            background: var(--danger-color);
         }
+        
         .btn-green {
-            background: #0f9d58;
+            background: var(--secondary-color);
         }
+        
         .btn-purple {
-            background: #9c27b0;
+            background: var(--accent-color);
         }
+        
         .btn-orange {
-            background: #ff9800;
+            background: var(--warning-color);
         }
+        
+        .btn-blue {
+            background: var(--primary-color);
+        }
+        
+        .btn-teal {
+            background: #009688;
+        }
+        
         #points-container {
             margin: 10px 0;
+            /* 修复：允许容器内部正常滚动 */
+            max-height: 300px;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
         }
+        
         .point-item {
             display: flex;
             flex-wrap: wrap;
@@ -93,58 +194,172 @@
             margin-bottom: 8px;
             align-items: center;
             padding: 8px;
-            background: #f0f0f0;
+            background: var(--primary-light);
             border-radius: 4px;
-            cursor: move;
+            border: 1px solid var(--border-color);
+            /* 修复：允许正常触摸交互 */
+            user-select: none;
         }
+        
         .point-item.dragging {
             opacity: 0.5;
-            background: #d0d0d0;
+            background: var(--code-bg);
+            position: relative;
+            z-index: 1000;
         }
+        
+        /* 修复：深色模式下点项目样式 */
+        [data-theme="dark"] .point-item {
+            background: #2a3b57;
+            border-color: #444;
+        }
+        
         .point-item input {
             flex: 1;
             min-width: 100px;
+            min-height: 40px;
         }
+        
         .point-item button {
             flex: 0 0 auto;
             width: auto;
             padding: 8px 12px;
+            min-height: 40px;
         }
+        
         .export-buttons {
             display: flex;
             gap: 10px;
             margin: 15px 0;
             flex-wrap: wrap;
         }
+        
         .export-buttons button {
             flex: 1;
             min-width: 120px;
         }
+        
         table {
             width: 100%;
             border-collapse: collapse;
             margin-top: 15px;
             font-size: 0.85em;
+            border: 1px solid var(--border-color);
         }
+        
         th, td {
-            border: 1px solid #ddd;
+            border: 1px solid var(--border-color);
             padding: 8px;
             text-align: left;
             word-break: break-word;
         }
+        
         th {
-            background-color: #f2f2f2;
+            background-color: var(--table-header-bg);
+            color: var(--text-color);
         }
         
-        /* 画布样式 */
         canvas {
             margin-top: 15px;
-            border: 1px solid #ddd;
+            border: 1px solid var(--border-color);
             width: 100%;
             height: auto;
             max-height: 400px;
             display: block;
-            background: white;
+            background: var(--surface-color);
+            /* 修复：画布触摸行为 */
+            touch-action: none;
+        }
+        
+        .program-display {
+            margin-top: 20px;
+            padding: 15px;
+            background: var(--primary-light);
+            border-radius: 4px;
+            border: 1px solid var(--border-color);
+        }
+        
+        .program-display h3 {
+            color: var(--primary-color);
+            margin-top: 0;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .program-content {
+            background: var(--surface-color);
+            padding: 15px;
+            border-radius: 4px;
+            border: 1px solid var(--border-color);
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            max-height: 300px;
+            overflow-y: auto;
+            margin-bottom: 15px;
+            color: var(--text-color);
+        }
+        
+        .format-toggle {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .format-btn {
+            flex: 1;
+            padding: 12px;
+            background: var(--primary-light);
+            color: var(--text-color);
+            border: 2px solid var(--border-color);
+            font-size: 0.85em;
+            min-height: var(--touch-target-size);
+        }
+        
+        .format-btn.active {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+        
+        .format-label {
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: var(--text-secondary);
+            font-size: 0.9em;
+        }
+        
+        .formula-info {
+            background: var(--primary-light);
+            padding: 12px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+            border-left: 4px solid var(--primary-color);
+            font-size: 0.9em;
+        }
+        
+        .formula-info h4 {
+            margin: 0 0 8px 0;
+            color: var(--primary-color);
+            font-size: 1em;
+        }
+        
+        .formula-info p {
+            margin: 5px 0;
+            color: var(--text-color);
+        }
+        
+        .formula-info code {
+            background: var(--code-bg);
+            padding: 2px 5px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            color: var(--text-color);
         }
         
         .toggle-container {
@@ -152,33 +367,42 @@
             gap: 10px;
             margin-bottom: 15px;
         }
+        
         .toggle-btn {
             flex: 1;
+            min-height: var(--touch-target-size);
+            /* 修复：确保按钮可点击 */
+            pointer-events: auto;
+            z-index: 1;
         }
         
-        /* 模板面板样式 */
         .template-panel {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            width: 400px;
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            position: fixed;
+            top: 0;
+            right: 0;
+            width: 100%;
+            max-width: 400px;
+            height: 100%;
+            background: var(--surface-color);
             z-index: 100;
             overflow: hidden;
             transition: transform 0.3s ease, opacity 0.3s ease;
-            max-height: 90vh;
-            overflow-y: auto;
-        }
-        .template-panel.collapsed {
-            transform: translateX(420px);
+            transform: translateX(100%);
             opacity: 0;
+            border-left: 1px solid var(--border-color);
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
         }
+        
+        .template-panel.active {
+            transform: translateX(0);
+            opacity: 1;
+        }
+        
         .template-header {
-            background: #4285f4;
+            background: var(--primary-color);
             color: white;
-            padding: 12px 15px;
+            padding: 15px;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -186,11 +410,14 @@
             position: sticky;
             top: 0;
             z-index: 10;
+            min-height: var(--touch-target-size);
         }
+        
         .template-header h3 {
             margin: 0;
             font-size: 1.1em;
         }
+        
         .hamburger {
             display: flex;
             flex-direction: column;
@@ -199,6 +426,7 @@
             height: 18px;
             cursor: pointer;
         }
+        
         .hamburger span {
             display: block;
             height: 3px;
@@ -207,87 +435,840 @@
             border-radius: 2px;
             transition: all 0.3s ease;
         }
+        
         .template-content {
             padding: 15px;
+            padding-bottom: 30px;
         }
+        
         .template-group {
             margin-bottom: 20px;
         }
+        
         .template-group h4 {
             margin: 0 0 10px 0;
             font-size: 1em;
-            color: #333;
-            border-bottom: 1px solid #eee;
+            color: var(--text-color);
+            border-bottom: 1px solid var(--border-color);
             padding-bottom: 5px;
         }
+        
         .template-buttons {
             display: flex;
             flex-wrap: wrap;
             gap: 8px;
         }
+        
         .template-buttons button {
             flex: 1;
             min-width: 140px;
-            padding: 8px 10px;
+            padding: 12px 10px;
             font-size: 0.85em;
+            min-height: var(--touch-target-size);
         }
         
-        /* 多模板组合样式 */
         .multi-template-combination {
             display: flex;
             flex-direction: column;
             gap: 10px;
             margin-top: 10px;
         }
+        
         .template-select-row {
             display: flex;
             gap: 10px;
             align-items: center;
         }
+        
         .template-select-row select {
             flex: 1;
-            padding: 8px;
-            border: 1px solid #ddd;
+            padding: 12px;
+            border: 1px solid var(--border-color);
             border-radius: 4px;
             font-size: 16px;
+            background: var(--input-bg);
+            color: var(--text-color);
+            min-height: var(--touch-target-size);
         }
+        
         .template-select-row button {
             flex: 0 0 auto;
             width: auto;
-            padding: 8px 12px;
+            padding: 12px;
+            min-height: var(--touch-target-size);
         }
+        
         .selected-templates {
             margin-top: 10px;
             padding: 10px;
-            background: #f5f5f5;
+            background: var(--code-bg);
             border-radius: 4px;
             max-height: 150px;
             overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
         }
+        
         .selected-template-item {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 5px 0;
-            border-bottom: 1px solid #ddd;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border-color);
+            min-height: var(--touch-target-size);
         }
+        
         .selected-template-item:last-child {
             border-bottom: none;
         }
+        
         .template-actions {
             display: flex;
             gap: 10px;
             margin-top: 10px;
         }
         
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal.active {
+            display: flex;
+        }
+        
+        .modal-content {
+            background: var(--surface-color);
+            padding: 20px;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+            border: 1px solid var(--border-color);
+        }
+        
+        .modal-header {
+            margin-bottom: 15px;
+        }
+        
+        .modal-header h3 {
+            margin: 0;
+            color: var(--primary-color);
+        }
+        
+        .modal-body {
+            margin-bottom: 20px;
+        }
+        
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+        
+        .modal-input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid var(--primary-color);
+            border-radius: 4px;
+            font-size: 16px;
+            box-sizing: border-box;
+            background: var(--input-bg);
+            color: var(--text-color);
+            min-height: var(--touch-target-size);
+        }
+        
+        .video-modal .modal-content {
+            max-width: 800px;
+        }
+        
+        .video-container {
+            position: relative;
+            padding-bottom: 56.25%; /* 16:9 比例 */
+            height: 0;
+            overflow: hidden;
+            border-radius: 4px;
+            background: #000;
+        }
+        
+        .video-container iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+        
+        .video-info {
+            font-size: 0.9em;
+            color: var(--text-secondary);
+            text-align: center;
+            margin-top: 10px;
+            padding: 10px;
+            background: var(--primary-light);
+            border-radius: 4px;
+        }
+        
+        .bilibili-link {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 10px;
+            padding: 10px;
+            background: var(--primary-color);
+            color: white;
+            border-radius: 4px;
+            text-decoration: none;
+            transition: opacity 0.3s ease;
+        }
+        
+        .bilibili-link:hover {
+            opacity: 0.9;
+            color: white;
+            text-decoration: none;
+        }
+        
+        .bilibili-icon {
+            font-size: 1.2em;
+        }
+        
+        .loading {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .loading.active {
+            display: flex;
+        }
+        
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid var(--border-color);
+            border-top: 5px solid var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 20px;
+            padding: 15px;
+            color: var(--text-secondary);
+            font-size: 0.9em;
+            border-top: 1px solid var(--border-color);
+        }
+        
+        footer a {
+            color: var(--primary-color);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            transition: color 0.3s ease;
+        }
+        
+        footer a:hover {
+            color: var(--accent-color);
+            text-decoration: underline;
+        }
+        
+        footer .footer-text {
+            font-size: 0.8em;
+            color: var(--text-secondary);
+            margin-top: 5px;
+        }
+        
+        .incremental-calculator {
+            background: var(--surface-color);
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px var(--shadow-color);
+            margin-top: 20px;
+        }
+        
+        .incremental-controls {
+            background: var(--primary-light);
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+            border-left: 4px solid var(--warning-color);
+        }
+        
+        .control-group {
+            margin-bottom: 15px;
+        }
+        
+        .control-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: var(--text-color);
+            font-weight: bold;
+        }
+        
+        .control-group input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            box-sizing: border-box;
+            background: var(--input-bg);
+            color: var(--text-color);
+        }
+        
+        .control-group .unit {
+            font-size: 0.8em;
+            color: var(--text-secondary);
+            margin-top: 5px;
+        }
+        
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            font-size: 0.8em;
+            border: 1px solid var(--border-color);
+        }
+        
+        .comparison-table th,
+        .comparison-table td {
+            border: 1px solid var(--border-color);
+            padding: 6px;
+            text-align: center;
+        }
+        
+        .comparison-table th {
+            background-color: var(--table-header-bg);
+        }
+        
+        .original-value {
+            color: var(--text-secondary);
+            text-decoration: line-through;
+        }
+        
+        .adjusted-value {
+            color: var(--secondary-color);
+            font-weight: bold;
+        }
+        
+        .difference {
+            font-size: 0.8em;
+            color: var(--danger-color);
+        }
+        
+        .tab-container {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 10px;
+        }
+        
+        .tab-btn {
+            flex: 1;
+            padding: 12px;
+            background: var(--primary-light);
+            color: var(--text-color);
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: all 0.3s ease;
+            min-height: var(--touch-target-size);
+            /* 修复：确保按钮可点击 */
+            pointer-events: auto;
+            z-index: 1;
+        }
+        
+        .tab-btn.active {
+            background: var(--primary-color);
+            color: white;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .incremental-template-select {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .incremental-template-select select {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid var(--primary-color);
+            border-radius: 4px;
+            font-size: 16px;
+            background: var(--input-bg);
+            color: var(--text-color);
+            min-height: var(--touch-target-size);
+        }
+        
+        .adjustment-inputs {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .adjustment-item {
+            background: var(--surface-color);
+            padding: 15px;
+            border-radius: 4px;
+            border: 1px solid var(--border-color);
+        }
+        
+        .adjustment-item h4 {
+            margin: 0 0 10px 0;
+            color: var(--text-color);
+            font-size: 1em;
+        }
+        
+        .adjustment-values {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .value-display {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px;
+            background: var(--primary-light);
+            border-radius: 4px;
+        }
+        
+        .value-display .label {
+            font-size: 0.9em;
+            color: var(--text-secondary);
+        }
+        
+        .value-display .value {
+            font-weight: bold;
+            color: var(--text-color);
+        }
+        
+        .adjustment-input {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .adjustment-input input {
+            flex: 1;
+            text-align: right;
+            border: 2px solid var(--primary-color);
+            background: var(--input-bg);
+            color: var(--text-color);
+        }
+        
+        .adjustment-input input:focus {
+            border-color: var(--secondary-color);
+            box-shadow: 0 0 5px rgba(15, 157, 88, 0.3);
+        }
+        
+        .adjustment-input .unit {
+            font-size: 0.9em;
+            color: var(--text-secondary);
+            min-width: 30px;
+        }
+        
+        /* 修改.calculated-result的样式 - 使用固定字体颜色 */
+        .calculated-result {
+            margin-top: 10px;
+            padding: 10px;
+            background: var(--primary-light);
+            border-radius: 4px;
+            border: 1px solid var(--border-color);
+            color: var(--text-color); /* 改为使用主题变量 */
+        }
+
+        .calculated-result strong {
+            color: var(--secondary-color); /* 改为使用主题变量 */
+        }
+        
+        .auto-calc-btn {
+            margin-top: 15px;
+            width: 100%;
+        }
+        
+        /* 修改.adjustment-explanation的样式 - 使用固定字体颜色 */
+        .adjustment-explanation {
+            background: var(--primary-light);
+            padding: 12px;
+            border-radius: 4px;
+            margin-top: 15px;
+            border-left: 4px solid var(--warning-color);
+            font-size: 0.9em;
+        }
+
+        .adjustment-explanation h4 {
+            margin: 0 0 8px 0;
+            color: var(--text-color); /* 使用主题变量 */
+            font-size: 1em;
+        }
+
+        .adjustment-explanation p {
+            margin: 5px 0;
+            color: var(--text-secondary); /* 使用主题变量 */
+        }
+        
+        .standard-value-highlight {
+            background: var(--primary-light);
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+            border-left: 4px solid var(--primary-color);
+        }
+        
+        .standard-value-highlight h4 {
+            margin: 0 0 10px 0;
+            color: var(--primary-color);
+            font-size: 1em;
+        }
+        
+        .standard-values {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        
+        .standard-value-item {
+            text-align: center;
+            padding: 8px;
+            background: var(--surface-color);
+            border-radius: 4px;
+            border: 1px solid var(--border-color);
+        }
+        
+        .standard-value-item .label {
+            font-size: 0.8em;
+            color: var(--text-secondary);
+            margin-bottom: 5px;
+        }
+        
+        .standard-value-item .value {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: var(--secondary-color);
+        }
+        
+        /* 新增样式 */
+        .template-search {
+            margin-bottom: 15px;
+            position: relative;
+        }
+        
+        .template-search input {
+            width: 100%;
+            padding: 12px 40px 12px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-size: 0.9em;
+            background: var(--input-bg);
+            color: var(--text-color);
+            min-height: var(--touch-target-size);
+        }
+        
+        .template-search .search-icon {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-secondary);
+            font-size: 0.9em;
+            pointer-events: none;
+        }
+        
+        .template-group.collapsible {
+            margin-bottom: 15px;
+        }
+        
+        .template-group-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border-color);
+            min-height: var(--touch-target-size);
+        }
+        
+        .template-group-header h4 {
+            margin: 0;
+            font-size: 1em;
+            color: var(--text-color);
+        }
+        
+        .template-group-header .toggle-icon {
+            color: var(--text-secondary);
+            font-size: 0.9em;
+            transition: transform 0.3s ease;
+        }
+        
+        .template-group-header .toggle-icon.collapsed {
+            transform: rotate(-90deg);
+        }
+        
+        .template-group-content {
+            padding-top: 10px;
+            max-height: 300px;
+            overflow-y: auto;
+            transition: max-height 0.3s ease;
+            -webkit-overflow-scrolling: touch;
+        }
+        
+        .template-group-content.collapsed {
+            max-height: 0;
+            overflow: hidden;
+            padding-top: 0;
+        }
+        
+        .template-not-found {
+            text-align: center;
+            padding: 20px;
+            color: var(--text-secondary);
+            font-size: 0.9em;
+        }
+        
+        .template-not-found.hidden {
+            display: none;
+        }
+        
+        /* 模板库点击外部关闭的遮罩层 */
+        .template-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.3);
+            z-index: 99;
+        }
+        
+        .template-overlay.active {
+            display: block;
+        }
+        
+        /* 悬浮球样式 */
+        .theme-toggle {
+            position: fixed;
+            cursor: grab;
+            z-index: 10000;
+            border: none;
+            background: transparent;
+            padding: 0;
+            outline: none;
+            user-select: none;
+            touch-action: none;
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            will-change: transform, left, top;
+            width: 60px;
+            height: 60px;
+        }
+
+        .toggle-ball {
+            width: 100%;
+            height: 100%;
+            background: var(--toggle-bg);
+            border-radius: 50%;
+            position: relative;
+            transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 
+                0 8px 32px var(--toggle-shadow),
+                0 4px 16px rgba(0, 0, 0, 0.2),
+                inset 0 2px 4px rgba(255, 255, 255, 0.1),
+                inset 0 -4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        /* 边缘隐藏效果 */
+        .theme-toggle.hidden {
+            transform: translateX(0%);
+        }
+
+        .theme-toggle.hidden-right {
+            right: 0;
+            transform: translateX(70%);
+        }
+
+        .theme-toggle.hidden-left {
+            left: 0;
+            transform: translateX(-70%);
+        }
+
+        /* 拖拽状态 */
+        .theme-toggle.dragging {
+            cursor: grabbing;
+            transition: none;
+        }
+
+        .theme-toggle.dragging .toggle-ball {
+            opacity: 0.8;
+        }
+
+        /* 点击效果 */
+        .theme-toggle:active:not(.dragging) .toggle-ball {
+            transform: scale(0.85);
+            transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* 波纹效果 */
+        .ripple {
+            position: absolute;
+            border-radius: 50%;
+            background: var(--text-secondary);
+            opacity: 0.2;
+            transform: scale(0);
+            animation: rippleEffect 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: -1;
+        }
+
+        @keyframes rippleEffect {
+            0% { transform: scale(0); opacity: 0.6; }
+            100% { transform: scale(2); opacity: 0; }
+        }
+        
+        /* 开发者信息 */
+        .developer-info {
+            text-align: center;
+            padding: 10px;
+            margin-top: 20px;
+            color: var(--text-secondary);
+            font-size: 0.8em;
+            border-top: 1px solid var(--border-color);
+        }
+        
+        .developer-info a {
+            color: var(--primary-color);
+            text-decoration: none;
+        }
+        
+        .developer-info a:hover {
+            text-decoration: underline;
+        }
+        
         /* 移动端优化 */
+        .touch-hint {
+            position: fixed;
+            bottom: 20px;
+            left: 0;
+            width: 100%;
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 0.8em;
+            padding: 10px;
+            background: rgba(0,0,0,0.1);
+            display: none;
+        }
+        
+        /* 虚拟键盘触发时调整布局 */
+        @media (max-height: 500px) {
+            .program-content {
+                max-height: 200px;
+            }
+            
+            .template-group-content {
+                max-height: 200px;
+            }
+            
+            .video-container {
+                padding-bottom: 75%; /* 4:3 比例以适应更小的高度 */
+            }
+        }
+        
         @media (max-width: 768px) {
             .template-panel {
-                width: 350px;
-                right: 10px;
+                width: 100%;
+                max-width: 100%;
             }
+            
             body {
                 padding: 10px;
+            }
+            
+            .tab-container {
+                flex-direction: column;
+            }
+            
+            .adjustment-inputs {
+                grid-template-columns: 1fr;
+            }
+            
+            .theme-toggle {
+                width: 50px;
+                height: 50px;
+            }
+            
+            .toggle-container {
+                flex-direction: column;
+            }
+            
+            .format-toggle {
+                flex-direction: column;
+            }
+            
+            .template-select-row {
+                flex-direction: column;
+            }
+            
+            .template-select-row button {
+                width: 100%;
+            }
+            
+            .touch-hint {
+                display: block;
+            }
+            
+            /* 防止iOS输入框缩放 */
+            input, select, textarea {
+                font-size: 16px;
+            }
+            
+            /* 改善移动端滚动 */
+            body {
+                -webkit-overflow-scrolling: touch;
+                overflow-x: hidden;
+            }
+            
+            /* 修复移动端按钮点击 */
+            button {
+                touch-action: manipulation;
+            }
+            
+            .video-modal .modal-content {
+                width: 95%;
+                max-width: 95%;
+                margin: 10px;
             }
         }
         
@@ -296,161 +1277,132 @@
                 flex-direction: column;
                 align-items: stretch;
             }
+            
             .point-item input, .point-item button {
                 width: 100%;
             }
-            .template-panel {
-                width: 90%;
-                right: 5%;
-                left: 5%;
-            }
+            
             .template-buttons button {
                 min-width: 100%;
             }
-            .template-select-row {
-                flex-direction: column;
-            }
+            
             .export-buttons button {
                 min-width: 100%;
             }
+            
             h2 {
                 font-size: 1.3em;
             }
-        }
-        
-        /* 触摸优化 */
-        button:active {
-            opacity: 0.8;
-            transform: scale(0.98);
-            transition: all 0.1s;
-        }
-        
-        /* 安装提示 */
-        .install-prompt {
-            position: fixed;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: #4285f4;
-            color: white;
-            padding: 10px 20px;
-            border-radius: 25px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-            display: none;
-            z-index: 1000;
-            cursor: pointer;
-        }
-        
-        /* 加载动画 */
-        .loading {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(255,255,255,0.8);
-            z-index: 9999;
-            justify-content: center;
-            align-items: center;
-        }
-        .loading.active {
-            display: flex;
-        }
-        .spinner {
-            width: 50px;
-            height: 50px;
-            border: 5px solid #f3f3f3;
-            border-top: 5px solid #4285f4;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        
-        /* 页脚样式 */
-        footer {
-            text-align: center;
-            margin-top: 20px;
-            padding: 15px;
-            color: #666;
-            font-size: 0.9em;
-            border-top: 1px solid #eee;
-        }
-        footer a {
-            color: #4285f4;
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-            transition: color 0.3s ease;
-        }
-        footer a:hover {
-            color: #0d47a1;
-            text-decoration: underline;
-        }
-        footer .footer-text {
-            font-size: 0.8em;
-            color: #999;
-            margin-top: 5px;
+            
+            .modal-content {
+                width: 95%;
+                padding: 15px;
+            }
+            
+            .program-content {
+                font-size: 12px;
+                padding: 10px;
+            }
+            
+            .comparison-table {
+                font-size: 0.7em;
+            }
+            
+            .theme-toggle {
+                width: 45px;
+                height: 45px;
+            }
+            
+            .standard-values {
+                grid-template-columns: 1fr;
+            }
+            
+            /* 移动端按钮点击效果 */
+            button:active {
+                transform: scale(0.95);
+            }
+            
+            .video-container {
+                padding-bottom: 75%; /* 移动端使用更高的比例 */
+            }
         }
     </style>
 </head>
 <body>
-    <!-- 安装提示 -->
-    <div class="install-prompt" id="installPrompt" onclick="installApp()">
-        📱 添加到桌面使用更便捷
+    <!-- 悬浮球 -->
+    <button class="theme-toggle" id="themeToggle" aria-label="切换主题">
+        <div class="toggle-ball" id="toggleBall"></div>
+    </button>
+    
+    <!-- 移动端提示 -->
+    <div class="touch-hint" id="touchHint">
+        💡 提示：长按悬浮球可拖动位置，点击切换主题
     </div>
     
-    <!-- 加载动画 -->
     <div class="loading" id="loading">
         <div class="spinner"></div>
     </div>
     
-    <!-- 模板面板 -->
-    <div class="template-panel collapsed">
+    <!-- 模板库遮罩层 -->
+    <div class="template-overlay" id="templateOverlay" onclick="closeTemplatePanel()"></div>
+    
+    <!-- 程序名称输入模态框 -->
+    <div class="modal" id="programNameModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>导出程序文件</h3>
+            </div>
+            <div class="modal-body">
+                <input type="text" id="programName" class="modal-input" placeholder="请输入程序名称（不带扩展名）" autofocus>
+            </div>
+            <div class="modal-footer">
+                <button onclick="closeProgramNameModal()" class="btn-red">取消</button>
+                <button onclick="exportProgram()" class="btn-green">确定</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 模板库面板 -->
+    <div class="template-panel" id="templatePanel">
         <div class="template-header" onclick="toggleTemplatePanel()">
             <h3>模板库</h3>
+            <div class="hamburger">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
         </div>
-        <div class="template-content">
-            <div class="template-group">
-                <h4>主轴模板</h4>
-                <div class="template-buttons">
-                    <button onclick="loadTemplate('主轴24', true)">主轴24</button>
-                    <button onclick="loadTemplate('主轴26.3', true)">主轴26.3</button>
-                    <button onclick="loadTemplate('主轴27.7', true)">主轴27.7</button>
-                    <button onclick="loadTemplate('主轴28.7', true)">主轴28.7</button>
-                    <button onclick="loadTemplate('主轴33', true)">主轴33</button>
-                    <button onclick="loadTemplate('主轴37.2', true)">主轴37.2</button>
-                    <button onclick="loadTemplate('特别版28.7', true)">特别版28.7</button>
-                    <button onclick="loadTemplate('特别版33', true)">特别版33</button>
+        <div class="template-content" id="template-content">
+            <div id="template-loading">
+                <div style="text-align: center; padding: 20px; color: var(--text-secondary);">
+                    正在加载模板...
                 </div>
             </div>
             
             <div class="template-group">
-                <h4>下轴模板</h4>
-                <div class="template-buttons">
-                    <button onclick="loadTemplate('下轴24', true)">下轴24</button>
-                    <button onclick="loadTemplate('下轴26.3', true)">下轴26.3</button>
-                    <button onclick="loadTemplate('下轴27.7', true)">下轴27.7</button>
-                    <button onclick="loadTemplate('下轴28.7', true)">下轴28.7</button>
-                    <button onclick="loadTemplate('下轴33', true)">下轴33</button>
-                    <button onclick="loadTemplate('下轴特别版33', true)">下轴特别版33</button>
+                <h4>📹 视频教程</h4>
+                <div style="margin-bottom: 10px; text-align: center;">
+                    <button onclick="openVideoTutorial()" class="btn-teal" style="width: 100%; padding: 15px; font-size: 1em;">
+                        🎬 观看视频教程
+                    </button>
+                    <p style="font-size: 0.8em; color: var(--text-secondary); margin-top: 10px;">
+                        学习如何使用五孔计算器的各项功能
+                    </p>
                 </div>
             </div>
             
             <div class="template-group">
-                <h4>附加模板</h4>
-                <div class="template-buttons">
-                    <button onclick="loadTemplate('120410定位孔', false)">120410定位孔</button>
-                    <button onclick="loadTemplate('111810排气孔', false)">111810排气孔</button>
-                    <button onclick="loadTemplate('111810沉孔', false)">111810沉孔</button>
-                    <button onclick="loadTemplate('339810沉孔', false)">339810沉孔</button>
-                    <button onclick="loadTemplate('339810沉孔2', false)">339810沉孔2</button>
-                    <button onclick="showMoreTemplates()" class="btn-purple">更多模板...</button>
+                <h4>加载模板文件</h4>
+                <div style="margin-bottom: 10px;">
+                    <input type="file" id="template-file-input" accept=".txt" style="width: 100%; padding: 8px;">
+                    <button onclick="loadTemplateFileFromInput()" class="btn-green" style="margin-top: 10px; width: 100%;">加载模板文件</button>
                 </div>
+                <div style="font-size: 0.8em; color: var(--text-secondary); padding: 5px;">
+                    请选择"模版点位.txt"文件
+                </div>
+            </div>
+            
+            <div id="template-groups">
             </div>
             
             <div class="template-group">
@@ -459,40 +1411,12 @@
                     <div class="template-select-row">
                         <select id="template-select">
                             <option value="">选择模板添加到组合</option>
-                            <!-- 主轴模板 -->
-                            <optgroup label="主轴模板">
-                                <option value="主轴24">主轴24</option>
-                                <option value="主轴26.3">主轴26.3</option>
-                                <option value="主轴27.7">主轴27.7</option>
-                                <option value="主轴28.7">主轴28.7</option>
-                                <option value="主轴33">主轴33</option>
-                                <option value="主轴37.2">主轴37.2</option>
-                                <option value="特别版28.7">特别版28.7</option>
-                                <option value="特别版33">特别版33</option>
-                            </optgroup>
-                            <!-- 下轴模板 -->
-                            <optgroup label="下轴模板">
-                                <option value="下轴24">下轴24</option>
-                                <option value="下轴26.3">下轴26.3</option>
-                                <option value="下轴27.7">下轴27.7</option>
-                                <option value="下轴28.7">下轴28.7</option>
-                                <option value="下轴33">下轴33</option>
-                                <option value="下轴特别版33">下轴特别版33</option>
-                            </optgroup>
-                            <!-- 附加模板 -->
-                            <optgroup label="附加模板">
-                                <option value="120410定位孔">120410定位孔</option>
-                                <option value="111810排气孔">111810排气孔</option>
-                                <option value="111810沉孔">111810沉孔</option>
-                                <option value="339810沉孔">339810沉孔</option>
-                                <option value="339810沉孔2">339810沉孔2</option>
-                            </optgroup>
                         </select>
                         <button onclick="addTemplateToCombination()" class="btn-green">添加</button>
                     </div>
                     
                     <div class="selected-templates" id="selected-templates">
-                        <div style="text-align: center; color: #999; padding: 10px;">
+                        <div style="text-align: center; color: var(--text-secondary); padding: 10px;">
                             暂无选择的模板
                         </div>
                     </div>
@@ -506,13 +1430,21 @@
         </div>
     </div>
     
-    <div class="calculator">
+    <!-- 标签页切换 -->
+    <div class="tab-container">
+        <button id="tab1" class="tab-btn active" onclick="switchTab(1)">五孔计算器</button>
+        <button id="tab2" class="tab-btn" onclick="switchTab(2)">递增计算器</button>
+    </div>
+    
+    <!-- 五孔计算器标签页 -->
+    <div id="calculator-tab" class="calculator tab-content active">
         <h2>五孔计算器</h2>
         
         <div class="toggle-container">
             <button id="toggleCanvasBtn" onclick="toggleCanvas()" class="toggle-btn btn-green">隐藏图形</button>
             <button onclick="reversePoints()" class="toggle-btn">反转顺序</button>
             <button onclick="toggleTemplatePanel()" class="toggle-btn btn-purple">模板库</button>
+            <button onclick="openVideoTutorial()" class="toggle-btn btn-teal">视频教程</button>
         </div>
         
         <div class="input-section">
@@ -523,28 +1455,22 @@
             
             <div class="input-group">
                 <label for="startX">起点 X:</label>
-                <input type="number" id="startX" placeholder="X坐标" step="0.1" value="0">
+                <input type="number" id="startX" placeholder="X坐标" step="0.1" value="0" inputmode="decimal">
                 <label for="startY">起点 Y:</label>
-                <input type="number" id="startY" placeholder="Y坐标" step="0.1" value="-35">
+                <input type="number" id="startY" placeholder="Y坐标" step="0.1" value="-35" inputmode="decimal">
                 <button onclick="updateStartPoint()" class="btn-green">更新起点</button>
             </div>
             
             <div class="input-group">
                 <label>添加路径点：</label>
-                <input type="number" id="newX" placeholder="X坐标" step="0.1">
-                <input type="number" id="newY" placeholder="Y坐标" step="0.1">
+                <input type="number" id="newX" placeholder="X坐标" step="0.1" inputmode="decimal">
+                <input type="number" id="newY" placeholder="Y坐标" step="0.1" inputmode="decimal">
                 <button onclick="addPoint()">添加点</button>
                 <button onclick="clearAll()" class="btn-red">清空所有点</button>
             </div>
         </div>
         
         <div id="points-container"></div>
-        
-        <div class="export-buttons">
-            <button onclick="exportAsImage()">导出为图片</button>
-            <button onclick="exportAsCSV()">导出为CSV表格</button>
-            <button onclick="exportAsHTML()">导出为HTML表格</button>
-        </div>
         
         <div id="results">
             <h3>计算结果：</h3>
@@ -563,264 +1489,1858 @@
             </table>
         </div>
         
-        <!-- 主画布 -->
         <canvas id="diagram"></canvas>
+        
+        <div class="program-display">
+            <h3>生成程序 <span style="font-size: 0.8em; color: var(--text-secondary);">（程序格式）</span></h3>
+            
+            <div class="format-label">选择程序格式：</div>
+            <div class="format-toggle">
+                <button id="format1Btn" class="format-btn active" onclick="switchFormat(1)">格式1 (单程序 $1)</button>
+                <button id="format2Btn" class="format-btn" onclick="switchFormat(2)">格式2 (双程序 $1 + $2)</button>
+            </div>
+            
+            <div class="formula-info">
+                <h4>计算公式说明：</h4>
+                <p>1. <strong>X值计算</strong>：<code>X = 距离(O→点) × 2</code></p>
+                <p>2. <strong>C值计算</strong>：累积角度（从0°开始累加每个扇形角度）</p>
+                <p style="margin-left: 15px;">• 附加模板中，如果两点过近，角度会用负数反向递增</p>
+                <p style="margin-left: 15px;">• 多模板组合时，点编号会从模板编号重新递增</p>
+                <p>3. <strong>程序格式</strong>：</p>
+                <p style="margin-left: 15px;">• <strong>格式1</strong>：完整的单程序，包含完整的加工流程</p>
+                <p style="margin-left: 15px;">• <strong>格式2</strong>：双程序格式，$1包含完整程序，$2为空</p>
+            </div>
+            
+            <div class="program-content" id="programContent">
+                暂无程序数据，请先加载模板或添加点。
+            </div>
+            <div class="export-buttons">
+                <button onclick="openVideoTutorial()" class="btn-teal">📹 视频教程</button>
+                <button onclick="openProgramNameModal()" class="btn-orange">导出程序</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 递增计算器标签页 -->
+    <div id="incremental-tab" class="incremental-calculator tab-content">
+        <h2>递增计算器</h2>
+        
+        <div class="incremental-controls">
+            <h4>模板选择与调整设置</h4>
+            
+            <div class="control-group">
+                <label>模板信息：</label>
+                <div class="value-display" style="margin-bottom: 15px; background: var(--primary-light);">
+                    <span class="label">当前选择：</span>
+                    <span class="value" id="templateInfoText">未选择模板</span>
+                </div>
+                <div class="unit">请从模板库中选择模板</div>
+                <div style="display: flex; gap: 10px; margin-top: 10px;">
+                    <button onclick="toggleTemplatePanel()" class="btn-purple" style="flex: 1;">打开模板库</button>
+                    <button onclick="openVideoTutorial()" class="btn-teal" style="flex: 1;">视频教程</button>
+                </div>
+            </div>
+            
+            <div id="standardValueHighlight" class="standard-value-highlight" style="display: none;">
+                <h4>标准值信息</h4>
+                <div class="standard-values">
+                    <div class="standard-value-item">
+                        <div class="label">标准X值</div>
+                        <div class="value" id="standardXValueDisplay">0.00</div>
+                    </div>
+                    <div class="standard-value-item">
+                        <div class="label">标准C值</div>
+                        <div class="value" id="standardCValueDisplay">0.00</div>
+                    </div>
+                </div>
+                <div style="font-size: 0.8em; color: var(--text-secondary); margin-top: 10px;">
+                    注：标准值为程序中第一个点的X和C值
+                </div>
+            </div>
+            
+            <div class="adjustment-inputs">
+                <div class="adjustment-item">
+                    <h4>X值调整</h4>
+                    <div class="adjustment-values">
+                        <div class="value-display">
+                            <span class="label">标准X值：</span>
+                            <span class="value" id="standardXValue">--</span>
+                        </div>
+                        <div class="adjustment-input">
+                            <input type="number" id="xAdjustment" step="0.01" value="0.00" placeholder="输入调整值" inputmode="decimal">
+                            <span class="unit">mm</span>
+                        </div>
+                        <div class="calculated-result">
+                            调整后X值：<strong id="adjustedXValue">--</strong> mm
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="adjustment-item">
+                    <h4>C值调整</h4>
+                    <div class="adjustment-values">
+                        <div class="value-display">
+                            <span class="label">标准C值：</span>
+                            <span class="value" id="standardCValue">0.00</span>
+                        </div>
+                        <div class="adjustment-input">
+                            <input type="number" id="cAdjustment" step="0.01" value="0.00" placeholder="输入调整值" inputmode="decimal">
+                            <span class="unit">°</span>
+                        </div>
+                        <div class="calculated-result">
+                            调整后C值：<strong id="adjustedCValue">0.00</strong> °
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <button onclick="applyAdjustments()" class="btn-green auto-calc-btn">应用调整并计算程序</button>
+            <button onclick="resetAdjustments()" class="btn-red" style="margin-top: 10px; width: 100%;">重置调整值</button>
+            
+            <div class="adjustment-explanation">
+                <h4>使用说明</h4>
+                <p>1. <strong>选择模板</strong>：从模板库选择要调整的模板</p>
+                <p>2. <strong>查看标准值</strong>：系统自动显示程序中第一个点的标准X值和C值</p>
+                <p>3. <strong>输入调整值</strong>：</p>
+                <p style="margin-left: 15px;">• 如果需要减小，输入负数（如：-0.26）</p>
+                <p style="margin-left: 15px;">• 如果需要增大，输入正数（如：+0.10）</p>
+                <p>4. <strong>应用调整</strong>：点击按钮应用调整并生成新程序</p>
+                <p>5. <strong>导出程序</strong>：导出调整后的程序用于加工</p>
+                <p><strong>注意</strong>：调整值会应用到程序中的所有点</p>
+            </div>
+        </div>
+        
+        <div class="program-display">
+            <h3>调整后的程序</h3>
+            
+            <div class="program-content" id="adjustedProgramContent">
+                请先选择模板并设置调整值。
+            </div>
+            
+            <div class="export-buttons">
+                <button onclick="openVideoTutorial()" class="btn-teal">📹 视频教程</button>
+                <button onclick="exportAdjustedProgram()" class="btn-orange">导出调整后的程序</button>
+            </div>
+        </div>
+        
+        <div style="margin-top: 20px;">
+            <h4>误差对比表</h4>
+            <table class="comparison-table" id="comparisonTable">
+                <thead>
+                    <tr>
+                        <th>点号</th>
+                        <th>原X值</th>
+                        <th>调整后X值</th>
+                        <th>X误差</th>
+                        <th>原C值</th>
+                        <th>调整后C值</th>
+                        <th>C误差</th>
+                    </tr>
+                </thead>
+                <tbody id="comparisonTableBody">
+                    <tr>
+                        <td colspan="7" style="text-align: center; padding: 20px; color: var(--text-secondary);">
+                            请先选择模板并计算
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
     </div>
 
+    <footer>
+        <p>
+            <a href="https://github.com/Xiaowuyu273637/Five-hole-calculator" 
+               target="_blank">
+                🌟 GitHub仓库: https://github.com/Xiaowuyu273637/Five-hole-calculator
+            </a>
+        </p>
+        <div class="developer-info">
+            <p>
+                <strong>👤 开发者：小无鱼</strong> | 
+                <strong>🤖 AI助手：DeepSeek</strong> | 
+                <strong>🚀 共同开发</strong>
+            </p>
+            <p class="footer-text">
+                五孔计算器 - 递增计算版 - 专业的五孔计算工具 | v2.2 视频教程版
+            </p>
+            <p style="margin-top: 10px;">
+                <a href="https://www.bilibili.com/video/BV1PoBQBSEaX/" target="_blank">
+                    📹 视频教程：https://www.bilibili.com/video/BV1PoBQBSEaX/
+                </a>
+            </p>
+        </div>
+    </footer>
+
     <script>
-        // 全局数据
-        const O = { x: 0, y: 0 }; // 圆心（固定点）
-        let A = { x: 0, y: -35 }; // 起点（可修改）
-        let points = []; // 存储所有路径点
+        // 五孔计算器核心变量
+        const O = { x: 0, y: 0 };
+        let A = { x: 0, y: -35 };
+        let points = [];
         let canvasVisible = true;
         let dragItem = null;
-        let product = Math.abs(A.y) * 2; // 积数 = 起点Y的绝对值×2
-        let isCombinationMode = false; // 是否组合模式
-        let selectedTemplates = []; // 存储选择的模板
-        let deferredPrompt = null; // PWA安装提示
+        let product = Math.abs(A.y) * 2;
+        let isCombinationMode = false;
+        let selectedTemplates = [];
+        let currentFormat = 1;
+        let templates = {};
         
-        // 模板数据
-        const templates = {
-            // 主轴模板
-            '主轴24': {
-                points: [
-                    { x: 24, y: -8.7 },
-                    { x: 16.6, y: 19.3 },
-                    { x: 4, y: 19.3 },
-                    { x: -18.3, y: 17.8 },
-                    { x: -24, y: -8.7 }
-                ],
-                origin: { x: 0, y: -25.5 }
-            },
-            '主轴26.3': {
-                points: [
-                    { x: 26.3, y: -9.6 },
-                    { x: 18.2, y: 21.4 },
-                    { x: -20.1, y: 19.4 },
-                    { x: -26.3, y: -9.6 }
-                ],
-                origin: { x: 0, y: -28 }
-            },
-            '主轴27.7': {
-                points: [
-                    { x: 27.7, y: -10.2 },
-                    { x: 19, y: 22.6 },
-                    { x: 3.8, y: 21 },
-                    { x: -21.5, y: 20.2 },
-                    { x: -27.7, y: -10.2 }
-                ],
-                origin: { x: 0, y: -29.5 }
-            },
-            '主轴28.7': {
-                points: [
-                    { x: 28.7, y: -10.4 },
-                    { x: 19.6, y: 23.4 },
-                    { x: 4.6, y: 22.8 },
-                    { x: -21.9, y: 21.2 },
-                    { x: -28.7, y: -10.4 }
-                ],
-                origin: { x: 0, y: -30.5 }
-            },
-            '主轴33': {
-                points: [
-                    { x: 33, y: -11 },
-                    { x: 22, y: 27 },
-                    { x: 4.8, y: 22.9 },
-                    { x: -24.4, y: 25.1 },
-                    { x: -33, y: -11 }
-                ],
-                origin: { x: 0, y: -35 }
-            },
-            '主轴37.2': {
-                points: [
-                    { x: 37.2, y: -11.9 },
-                    { x: 24.4, y: 30.4 },
-                    { x: 4.8, y: 26.3 },
-                    { x: -27.6, y: 27.6 },
-                    { x: -37.2, y: -11.9 }
-                ],
-                origin: { x: 0, y: -39 }
-            },
-            '特别版28.7': {
-                points: [
-                    { x: 16.1, y: -25.4 },
-                    { x: 28.7, y: -10.4 },
-                    { x: 21.2, y: 21.9 },
-                    { x: -4.6, y: 22.8 },
-                    { x: -19.6, y: 23.4 },
-                    { x: -28.7, y: -10.4 },
-                    { x: -16.1, y: -25.4 }
-                ],
-                origin: { x: 0, y: -30.5 }
-            },
-            '特别版33': {
-                points: [
-                    { x: 19, y: -27.7 },
-                    { x: 33, y: -11 },
-                    { x: 22, y: 27 },
-                    { x: 4.6, y: 24.5 },
-                    { x: -24.4, y: 25.1 },
-                    { x: -33, y: -11 },
-                    { x: -19, y: -27.7 }
-                ],
-                origin: { x: 0, y: -35 }
-            },
-            
-            // 下轴模板
-            '下轴24': {
-                points: [
-                    { x: 24, y: -8.7 },
-                    { x: 18.7, y: 17.8 },
-                    { x: -16.6, y: 19.3 },
-                    { x: -24, y: -8.7 }
-                ],
-                origin: { x: 0, y: -25.5 }
-            },
-            '下轴26.3': {
-                points: [
-                    { x: 26.3, y: -9.6 },
-                    { x: 20.1, y: 19.4 },
-                    { x: -4, y: 18.6 },
-                    { x: -18, y: 21.4 },
-                    { x: -26.3, y: 9.6 }
-                ],
-                origin: { x: 0, y: -28 }
-            },
-            '下轴27.7': {
-                points: [
-                    { x: 27.7, y: -10.2 },
-                    { x: 21.5, y: 20.2 },
-                    { x: -3.8, y: 21 },
-                    { x: -19, y: 22.6 },
-                    { x: -27.7, y: -10.2 }
-                ],
-                origin: { x: 0, y: -29.5 }
-            },
-            '下轴28.7': {
-                points: [
-                    { x: 28.7, y: -10.4 },
-                    { x: 21.2, y: 21.9 },
-                    { x: -4.6, y: 22.8 },
-                    { x: -19.6, y: 23.4 },
-                    { x: -28.7, y: -10.4 }
-                ],
-                origin: { x: 0, y: -30.5 }
-            },
-            '下轴33': {
-                points: [
-                    { x: 33, y: -11 },
-                    { x: 24, y: 25.3 },
-                    { x: -4.6, y: 25.9 },
-                    { x: -22, y: 27 },
-                    { x: -33, y: -11 }
-                ],
-                origin: { x: 0, y: -35 }
-            },
-            '下轴特别版33': {
-                points: [
-                    { x: 19, y: -27.7 },
-                    { x: 33, y: -11 },
-                    { x: 24.4, y: 25.1 },
-                    { x: -4.6, y: 24.5 },
-                    { x: -22, y: 27 },
-                    { x: -33, y: -11 },
-                    { x: -19, y: -27.7 }
-                ],
-                origin: { x: 0, y: -35 }
-            },
-            
-            // 附加模板
-            '120410定位孔': { points: [{ x: -35, y: 0 }], origin: null },
-            '111810排气孔': { points: [{ x: 18.6, y: -18.7 }, { x: -15.3, y: -21.2 }], origin: null },
-            '111810沉孔': { points: [{ x: 23.5, y: 8.6 }, { x: -20.4, y: -14.4 }], origin: null },
-            '339810沉孔': { points: [{ x: 17.4, y: -25.3 }, { x: -17.4, y: -25.3 }], origin: null },
-            '339810沉孔2': { points: [{ x: 32, y: 14.2 }, { x: -28, y: -20.9 }], origin: null }
+        let calculatedResults = [];
+        let templatePointGroups = [];
+        let originalProgramLines = [];
+        
+        let xAdjustment = 0;
+        let cAdjustment = 0;
+        
+        let incrementalSelectedTemplate = null;
+        let standardXValue = 0;
+        let standardCValue = 0;
+        
+        // 存储模板组的展开状态
+        let templateGroupStates = {
+            '主轴模板': true,
+            '下轴模板': true,
+            '特别版模板': true,
+            '附加模板': false,
+            '其他模板': true
         };
-
-        // ==== PWA功能 ====
-        // 监听安装提示
-        window.addEventListener('beforeinstallprompt', (e) => {
-            e.preventDefault();
-            deferredPrompt = e;
-            showInstallPrompt();
-        });
-
-        // 显示安装提示
-        function showInstallPrompt() {
-            if (deferredPrompt && !isAppInstalled()) {
-                setTimeout(() => {
-                    document.getElementById('installPrompt').style.display = 'block';
-                }, 3000);
+        
+        // 存储搜索关键词
+        let searchKeywords = {};
+        
+        // GitHub 模板文件URL
+        const GITHUB_TEMPLATE_URL = 'https://raw.githubusercontent.com/Xiaowuyu273637/Five-hole-calculator/main/%E6%A8%A1%E7%89%88%E7%82%B9%E4%BD%8D.txt';
+        
+        // B站视频教程URL
+        const BILIBILI_VIDEO_URL = 'https://www.bilibili.com/video/BV1PoBQBSEaX/';
+        
+        // 移动端检测
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+        
+        // ========== 视频教程功能 ==========
+        function openVideoTutorial() {
+            window.open('https://www.bilibili.com/video/BV1PoBQBSEaX/?vd_source=6af4db5cdbf72b2d4ced3337fdf5d7f6', '_blank');
+            
+            // 移动端震动反馈
+            if (isMobile && navigator.vibrate) {
+                navigator.vibrate(50);
             }
         }
+        
+        // 移动端优化
+        // 防止双击缩放
+        let lastTouchEnd = 0;
+        document.addEventListener('touchend', function(event) {
+            const now = Date.now();
+            if (now - lastTouchEnd <= 300) {
+                event.preventDefault();
+            }
+            lastTouchEnd = now;
+        }, false);
+        
+        // ========== 悬浮球类（移动端优化版）==========
+        class EdgeHideToggle {
+            constructor(options = {}) {
+                this.options = {
+                    ballSize: isMobile ? 50 : 60,
+                    hideThreshold: 30,
+                    hideDelay: 2000,
+                    longPressDelay: 300,
+                    clickMaxMove: isMobile ? 10 : 5, // 移动端增加容差
+                    deceleration: 0.95,
+                    minVelocity: 0.5,
+                    enableInertia: true,
+                    enableEdgeHide: true,
+                    enableVibrate: isMobile, // 移动端启用震动反馈
+                    ...options
+                };
 
-        // 安装应用
-        function installApp() {
-            if (deferredPrompt) {
-                deferredPrompt.prompt();
-                deferredPrompt.userChoice.then((choiceResult) => {
-                    if (choiceResult.outcome === 'accepted') {
-                        console.log('用户同意安装');
+                this.toggleBtn = document.getElementById('themeToggle');
+                this.toggleBall = document.getElementById('toggleBall');
+                this.body = document.body;
+                this.touchHint = document.getElementById('touchHint');
+                
+                this.isDragging = false;
+                this.isLongPress = false;
+                this.startTime = 0;
+                this.startX = 0;
+                this.startY = 0;
+                this.velocityX = 0;
+                this.velocityY = 0;
+                this.animationId = null;
+                this.hideTimer = null;
+                
+                this.minX = 0;
+                this.minY = 0;
+                this.maxX = 0;
+                this.maxY = 0;
+                
+                this.init();
+            }
+
+            init() {
+                this.toggleBall.style.width = `${this.options.ballSize}px`;
+                this.toggleBall.style.height = `${this.options.ballSize}px`;
+                
+                this.updateBoundaries();
+                const savedPos = localStorage.getItem('togglePosition');
+                if (savedPos) {
+                    const { x, y } = JSON.parse(savedPos);
+                    this.setPosition(x, y);
+                } else {
+                    // 移动端默认位置：右下角
+                    this.setPosition(this.maxX - 10, this.maxY - 10);
+                }
+                
+                const savedTheme = localStorage.getItem('theme') || 'light';
+                this.setTheme(savedTheme, false);
+                
+                this.bindEvents();
+                window.addEventListener('resize', () => this.updateBoundaries());
+                this.startHideCheck();
+            }
+
+            bindEvents() {
+                // 鼠标事件（桌面端）
+                this.toggleBtn.addEventListener('mousedown', (e) => this.handleStart(e));
+                document.addEventListener('mousemove', (e) => this.handleMove(e));
+                document.addEventListener('mouseup', (e) => this.handleEnd(e));
+
+                // 触摸事件（移动端）
+                this.toggleBtn.addEventListener('touchstart', (e) => {
+                    e.preventDefault();
+                    this.handleStart(e.touches[0]);
+                });
+                
+                document.addEventListener('touchmove', (e) => {
+                    e.preventDefault();
+                    if (e.touches.length === 1) this.handleMove(e.touches[0]);
+                });
+                
+                document.addEventListener('touchend', (e) => {
+                    e.preventDefault();
+                    if (e.changedTouches.length > 0) this.handleEnd(e.changedTouches[0]);
+                });
+
+                // 防止选择文本和右键菜单
+                this.toggleBtn.addEventListener('selectstart', (e) => e.preventDefault());
+                this.toggleBtn.addEventListener('contextmenu', (e) => e.preventDefault());
+            }
+
+            handleStart(e) {
+                this.startTime = Date.now();
+                this.isLongPress = false;
+                this.isDragging = false;
+                this.stopHide();
+                this.show();
+                
+                // 隐藏提示
+                if (this.touchHint) this.touchHint.style.display = 'none';
+                
+                this.startX = e.clientX || e.pageX;
+                this.startY = e.clientY || e.pageY;
+                this.lastX = e.clientX || e.pageX;
+                this.lastY = e.clientY || e.pageY;
+                this.lastTime = Date.now();
+                
+                const rect = this.toggleBtn.getBoundingClientRect();
+                this.initialX = rect.left;
+                this.initialY = rect.top;
+                
+                this.longPressTimer = setTimeout(() => {
+                    this.isLongPress = true;
+                    this.startDrag();
+                    // 移动端震动反馈
+                    if (this.options.enableVibrate && navigator.vibrate) {
+                        navigator.vibrate(50);
                     }
-                    deferredPrompt = null;
-                    document.getElementById('installPrompt').style.display = 'none';
+                }, this.options.longPressDelay);
+            }
+
+            handleMove(e) {
+                if (!this.startX || !this.startY) return;
+                
+                const currentTime = Date.now();
+                const deltaTime = currentTime - this.lastTime;
+                
+                const clientX = e.clientX || e.pageX;
+                const clientY = e.clientY || e.pageY;
+                
+                if (deltaTime > 0) {
+                    const deltaX = clientX - this.lastX;
+                    const deltaY = clientY - this.lastY;
+                    
+                    this.velocityX = deltaX / deltaTime * 1000;
+                    this.velocityY = deltaY / deltaTime * 1000;
+                    
+                    this.lastX = clientX;
+                    this.lastY = clientY;
+                    this.lastTime = currentTime;
+                }
+                
+                if (!this.isDragging) {
+                    const movedDistance = Math.sqrt(
+                        Math.pow(clientX - this.startX, 2) + 
+                        Math.pow(clientY - this.startY, 2)
+                    );
+                    
+                    if (movedDistance > this.options.clickMaxMove) {
+                        clearTimeout(this.longPressTimer);
+                        this.startDrag();
+                    }
+                }
+                
+                if (this.isDragging) {
+                    this.drag(e);
+                }
+            }
+
+            handleEnd(e) {
+                clearTimeout(this.longPressTimer);
+                
+                const endTime = Date.now();
+                const pressDuration = endTime - this.startTime;
+                const clientX = e.clientX || e.pageX;
+                const clientY = e.clientY || e.pageY;
+                const movedDistance = Math.sqrt(
+                    Math.pow(clientX - this.startX, 2) + 
+                    Math.pow(clientY - this.startY, 2)
+                );
+                
+                if (this.isDragging) {
+                    if (this.options.enableInertia) {
+                        this.startInertia();
+                    }
+                    this.savePosition();
+                    // 移动端震动反馈
+                    if (this.options.enableVibrate && navigator.vibrate) {
+                        navigator.vibrate(30);
+                    }
+                } else if (pressDuration < this.options.longPressDelay && 
+                          movedDistance < this.options.clickMaxMove) {
+                    this.toggleTheme();
+                    // 移动端震动反馈
+                    if (this.options.enableVibrate && navigator.vibrate) {
+                        navigator.vibrate(100);
+                    }
+                }
+                
+                this.resetDragState();
+                this.startHideCheck();
+            }
+
+            startDrag() {
+                this.isDragging = true;
+                this.toggleBtn.classList.add('dragging');
+                this.updateBoundaries();
+            }
+
+            drag(e) {
+                const clientX = e.clientX || e.pageX;
+                const clientY = e.clientY || e.pageY;
+                const dx = clientX - this.startX;
+                const dy = clientY - this.startY;
+                
+                let newX = this.initialX + dx;
+                let newY = this.initialY + dy;
+                
+                newX = Math.max(this.minX, Math.min(newX, this.maxX));
+                newY = Math.max(this.minY, Math.min(newY, this.maxY));
+                
+                this.setPosition(newX, newY);
+            }
+
+            startInertia() {
+                if (Math.abs(this.velocityX) < 1 && Math.abs(this.velocityY) < 1) {
+                    this.stopDrag();
+                    return;
+                }
+                
+                this.applyInertia();
+            }
+
+            applyInertia() {
+                if (!this.isDragging && (Math.abs(this.velocityX) > this.options.minVelocity || 
+                                         Math.abs(this.velocityY) > this.options.minVelocity)) {
+                    
+                    const rect = this.toggleBtn.getBoundingClientRect();
+                    let newX = rect.left + this.velocityX * 0.016;
+                    let newY = rect.top + this.velocityY * 0.016;
+                    
+                    if (newX < this.minX || newX > this.maxX) {
+                        this.velocityX *= -0.6;
+                        newX = newX < this.minX ? this.minX : this.maxX;
+                    }
+                    
+                    if (newY < this.minY || newY > this.maxY) {
+                        this.velocityY *= -0.6;
+                        newY = newY < this.minY ? this.minY : this.maxY;
+                    }
+                    
+                    this.setPosition(newX, newY);
+                    
+                    this.velocityX *= this.options.deceleration;
+                    this.velocityY *= this.options.deceleration;
+                    
+                    this.animationId = requestAnimationFrame(() => this.applyInertia());
+                } else {
+                    this.stopDrag();
+                }
+            }
+
+            stopDrag() {
+                this.isDragging = false;
+                this.toggleBtn.classList.remove('dragging');
+                
+                if (this.animationId) {
+                    cancelAnimationFrame(this.animationId);
+                    this.animationId = null;
+                }
+            }
+
+            resetDragState() {
+                this.startX = 0;
+                this.startY = 0;
+                this.initialX = 0;
+                this.initialY = 0;
+                this.velocityX = 0;
+                this.velocityY = 0;
+            }
+
+            startHideCheck() {
+                if (!this.options.enableEdgeHide) return;
+                
+                clearTimeout(this.hideTimer);
+                this.hideTimer = setTimeout(() => {
+                    this.checkEdgeHide();
+                }, this.options.hideDelay);
+            }
+
+            stopHide() {
+                clearTimeout(this.hideTimer);
+            }
+
+            checkEdgeHide() {
+                const rect = this.toggleBtn.getBoundingClientRect();
+                const screenWidth = window.innerWidth;
+                const screenHeight = window.innerHeight;
+                
+                this.toggleBtn.classList.remove('hidden', 'hidden-left', 'hidden-right');
+                
+                const isNearLeft = rect.left < this.options.hideThreshold;
+                const isNearRight = rect.left > screenWidth - rect.width - this.options.hideThreshold;
+                const isNearTop = rect.top < this.options.hideThreshold;
+                const isNearBottom = rect.top > screenHeight - rect.height - this.options.hideThreshold;
+                
+                if (isNearLeft) {
+                    this.toggleBtn.classList.add('hidden', 'hidden-left');
+                } else if (isNearRight) {
+                    this.toggleBtn.classList.add('hidden', 'hidden-right');
+                } else if (isNearTop || isNearBottom) {
+                    this.toggleBtn.classList.add('hidden');
+                }
+            }
+
+            show() {
+                this.toggleBtn.classList.remove('hidden', 'hidden-left', 'hidden-right');
+            }
+
+            setPosition(x, y) {
+                this.toggleBtn.style.left = `${x}px`;
+                this.toggleBtn.style.top = `${y}px`;
+            }
+
+            savePosition() {
+                const rect = this.toggleBtn.getBoundingClientRect();
+                localStorage.setItem('togglePosition', JSON.stringify({
+                    x: rect.left,
+                    y: rect.top
+                }));
+            }
+
+            updateBoundaries() {
+                this.maxX = window.innerWidth - this.options.ballSize;
+                this.maxY = window.innerHeight - this.options.ballSize;
+                
+                const rect = this.toggleBtn.getBoundingClientRect();
+                let x = Math.max(this.minX, Math.min(rect.left, this.maxX));
+                let y = Math.max(this.minY, Math.min(rect.top, this.maxY));
+                
+                this.setPosition(x, y);
+                this.savePosition();
+            }
+
+            toggleTheme() {
+                const currentTheme = this.body.getAttribute('data-theme');
+                const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+                this.setTheme(newTheme, true);
+            }
+
+            setTheme(theme, animate = true) {
+                if (animate) {
+                    this.createRipple();
+                    setTimeout(() => {
+                        this.body.setAttribute('data-theme', theme);
+                        localStorage.setItem('theme', theme);
+                        this.updateColors();
+                        
+                        // 确保CSS变量完全更新后重绘画布
+                        setTimeout(() => {
+                            if (points.length > 0 && canvasVisible) {
+                                forceRedrawCanvas();
+                            }
+                        }, 50);
+                    }, 100);
+                } else {
+                    this.body.setAttribute('data-theme', theme);
+                    localStorage.setItem('theme', theme);
+                    this.updateColors();
+                    
+                    // 确保CSS变量完全更新后重绘画布
+                    setTimeout(() => {
+                        if (points.length > 0 && canvasVisible) {
+                            forceRedrawCanvas();
+                        }
+                    }, 50);
+                }
+            }
+            
+            updateColors() {
+                const isDark = this.body.getAttribute('data-theme') === 'dark';
+                const root = document.documentElement;
+                
+                if (isDark) {
+                    root.style.setProperty('--toggle-bg', '#1a1a1a');
+                    root.style.setProperty('--toggle-shadow', 'rgba(0, 0, 0, 0.5)');
+                } else {
+                    root.style.setProperty('--toggle-bg', '#ffffff');
+                    root.style.setProperty('--toggle-shadow', 'rgba(0, 0, 0, 0.15)');
+                }
+            }
+
+            createRipple() {
+                const ripple = document.createElement('span');
+                ripple.classList.add('ripple');
+                
+                const rect = this.toggleBall.getBoundingClientRect();
+                const size = Math.max(rect.width, rect.height);
+                const x = rect.width / 2 - size / 2;
+                const y = rect.height / 2 - size / 2;
+                
+                ripple.style.width = ripple.style.height = size + 'px';
+                ripple.style.left = x + 'px';
+                ripple.style.top = y + 'px';
+                
+                this.toggleBall.appendChild(ripple);
+                setTimeout(() => ripple.remove(), 800);
+            }
+        }
+        
+        // ========== 画布强制重绘函数 ==========
+        function forceRedrawCanvas() {
+            if (!canvas || !ctx || !canvasVisible) return;
+            
+            // 清空画布
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // 如果有点数据，重新绘制
+            if (points.length > 0 && calculatedResults.length > 0) {
+                drawDiagram(calculatedResults);
+            } else {
+                // 绘制坐标轴
+                const allPoints = [O, A, ...points];
+                const { scale, offsetX, offsetY } = calculateViewport(allPoints);
+                drawAxes(scale, offsetX, offsetY);
+            }
+        }
+        
+        // ========== 模板相关函数 ==========
+        function parseTemplateFile(content) {
+            const templates = {};
+            const lines = content.split('\n');
+            let currentCategory = '';
+            let currentTemplateName = '';
+            let parsingTemplate = false;
+            
+            for (let line of lines) {
+                line = line.trim();
+                if (!line) continue;
+                
+                if (line.includes('模版') || line.includes('模板')) {
+                    if (parsingTemplate && currentTemplateName) {
+                        templates[currentTemplateName] = {
+                            points: parsePoints(currentPoints),
+                            origin: currentOrigin,
+                            category: currentCategory
+                        };
+                    }
+                    
+                    parsingTemplate = false;
+                    
+                    if (line.includes('主轴')) {
+                        currentCategory = '主轴模板';
+                    } else if (line.includes('下轴')) {
+                        currentCategory = '下轴模板';
+                    } else if (line.includes('特别版')) {
+                        currentCategory = '特别版模板';
+                    } else {
+                        currentCategory = '附加模板';
+                    }
+                    
+                    const templateMatch = line.match(/(.*?)(?:模版|模板)原点：/);
+                    if (templateMatch) {
+                        currentTemplateName = templateMatch[1].trim();
+                        parsingTemplate = true;
+                        
+                        const originMatch = line.match(/X([-\d.]+),Y([-\d.]+)/);
+                        if (originMatch) {
+                            currentOrigin = {
+                                x: parseFloat(originMatch[1]),
+                                y: parseFloat(originMatch[2])
+                            };
+                        } else {
+                            currentOrigin = null;
+                        }
+                        
+                        const pointsMatch = line.match(/示例点：(.*)$/);
+                        if (pointsMatch) {
+                            currentPoints = pointsMatch[1];
+                        } else {
+                            currentPoints = '';
+                        }
+                    }
+                }
+                else if (line.includes('排气孔') || line.includes('沉孔') || line.includes('定位孔') || 
+                         line.includes('标记孔') || line.includes('标记点') || line.includes('粗铣')) {
+                    if (parsingTemplate && currentTemplateName) {
+                        templates[currentTemplateName] = {
+                            points: parsePoints(currentPoints),
+                            origin: currentOrigin,
+                            category: currentCategory
+                        };
+                    }
+                    
+                    parsingTemplate = true;
+                    currentCategory = '附加模板';
+                    currentOrigin = null;
+                    
+                    const colonIndex = line.indexOf('：');
+                    if (colonIndex !== -1) {
+                        currentTemplateName = line.substring(0, colonIndex).trim();
+                        currentPoints = line.substring(colonIndex + 1).trim();
+                    } else {
+                        const parts = line.split(/:|：/);
+                        if (parts.length >= 2) {
+                            currentTemplateName = parts[0].trim();
+                            currentPoints = parts.slice(1).join(':').trim();
+                        } else {
+                            currentTemplateName = line.trim();
+                            currentPoints = '';
+                        }
+                    }
+                }
+                else if (/^[^：]+[：:]\s*/.test(line)) {
+                    if (parsingTemplate && currentTemplateName) {
+                        templates[currentTemplateName] = {
+                            points: parsePoints(currentPoints),
+                            origin: currentOrigin,
+                            category: currentCategory
+                        };
+                    }
+                    
+                    parsingTemplate = true;
+                    currentCategory = '附加模板';
+                    currentOrigin = null;
+                    
+                    const parts = line.split(/[：:]/);
+                    currentTemplateName = parts[0].trim();
+                    if (parts.length > 1) {
+                        currentPoints = parts.slice(1).join(':').trim();
+                    } else {
+                        currentPoints = '';
+                    }
+                }
+                else if (parsingTemplate) {
+                    currentPoints += ' ' + line;
+                }
+            }
+            
+            if (parsingTemplate && currentTemplateName) {
+                templates[currentTemplateName] = {
+                    points: parsePoints(currentPoints),
+                    origin: currentOrigin,
+                    category: currentCategory
+                };
+            }
+            
+            return templates;
+        }
+        
+        function parsePoints(pointsStr) {
+            if (!pointsStr) return [];
+            
+            const points = [];
+            pointsStr = pointsStr.replace(/，/g, ',').replace(/,/g, ' ').replace(/\s+/g, ' ').trim();
+            const coords = pointsStr.split(' ');
+            
+            for (let i = 0; i < coords.length; i += 2) {
+                if (i + 1 < coords.length) {
+                    const x = parseFloat(coords[i]);
+                    const y = parseFloat(coords[i + 1]);
+                    if (!isNaN(x) && !isNaN(y)) {
+                        points.push({ x, y });
+                    }
+                }
+            }
+            
+            return points;
+        }
+        
+        function loadTemplateFileFromInput() {
+            const fileInput = document.getElementById('template-file-input');
+            const file = fileInput.files[0];
+            
+            if (!file) {
+                alert('请先选择模板文件');
+                return;
+            }
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const content = e.target.result;
+                    templates = parseTemplateFile(content);
+                    console.log('加载的模板:', templates);
+                    updateTemplateUI();
+                    alert(`成功加载 ${Object.keys(templates).length} 个模板`);
+                    
+                    try {
+                        localStorage.setItem('fiveHoleTemplates', JSON.stringify(templates));
+                    } catch (e) {
+                        console.log('本地存储不可用');
+                    }
+                } catch (error) {
+                    console.error('解析模板文件失败:', error);
+                    alert('解析模板文件失败，请检查文件格式');
+                }
+            };
+            
+            reader.onerror = function() {
+                alert('读取文件失败');
+            };
+            
+            reader.readAsText(file);
+        }
+        
+        function loadTemplatesFromLocalStorage() {
+            try {
+                const saved = localStorage.getItem('fiveHoleTemplates');
+                if (saved) {
+                    templates = JSON.parse(saved);
+                    updateTemplateUI();
+                    console.log('从本地存储加载模板成功');
+                    return true;
+                }
+            } catch (e) {
+                console.error('从本地存储加载模板失败:', e);
+            }
+            return false;
+        }
+        
+        async function loadTemplateFromGitHub() {
+            showLoading(true);
+            try {
+                console.log('正在从GitHub加载模板文件...');
+                
+                // 尝试多个可能的URL
+                const possibleUrls = [
+                    GITHUB_TEMPLATE_URL,
+                    'https://github.com/Xiaowuyu273637/Five-hole-calculator/blob/main/Template%20Point.txt',
+                ];
+                
+                let content = null;
+                let successUrl = null;
+                
+                for (const url of possibleUrls) {
+                    try {
+                        console.log(`尝试从 ${url} 加载...`);
+                        const response = await fetch(url);
+                        if (response.ok) {
+                            content = await response.text();
+                            successUrl = url;
+                            console.log(`从 ${url} 加载成功`);
+                            break;
+                        }
+                    } catch (error) {
+                        console.log(`从 ${url} 加载失败:`, error.message);
+                    }
+                }
+                
+                if (!content) {
+                    console.warn('无法从GitHub加载模板，使用内置模板');
+                    // 使用内置模板内容
+                    content = `主轴24模版原点：X0,Y-25.5，示例点：24,-8.7 16.6,19.3 4,19.3 -18.3,17.8 -24,-8.7 -24,-8.7
+120410定位孔：-35,0
+
+下轴24模版原点：X0,Y-25.5，示例点：24,-8.7 18.7,17.8 -16.6,19.3 -24,-8.7
+110010标记孔：23.8,1.5
+
+主轴26.3模版原点：X0,Y-28.0，示例点：26.3,-9.6 18,21.4 -20.1,19.4 -26.3,-9.6
+115010排气孔：15.3,-21.2 -18.6,-18.7
+115010定位孔：-37,0
+226110定位孔：20.6,-19 3.8,19.5 -28,1.3
+228110排气孔：15.3,-21.2 -18.6,-18.7
+222810排气孔：15.3,-21.2 -18.6,-18.7
+229410排气孔：15.3,-21.2 -18.6,-18.7
+229410定位孔：0,-38
+235210定位孔：0,-38
+241110定位孔：0,-38
+美的11105815定位孔：-37,0
+115811定位孔：-37,0
+243810定位孔：0,-38
+
+下轴26.3模版原点：X0,Y-28.0，示例点：26.3,-9.6 20.1,19.4 -4,18.6 -18,21.4 -26.3,9.6
+111810排气孔：18.6,-18.7 -15.3,-21.2 
+111810沉孔：23.5,8.6 -20.4,-14.4
+226110定位孔：20.6,-19 3.8,19.5 -28,1.3
+224510排气孔：18.6,-18.7 -15.3,-21.3
+224510排气孔粗铣：-3.6,18.7
+241010标记点：-23.8,1.5
+241910标记点：-23.8,1.5
+141310排气孔：15.3,-21.2 -18.6,-18.7
+141310定位孔：-37,0
+141310标记孔：-22,5
+
+主轴27.7模版原点：X0,Y-29.5，示例点：27.7,-10.2 19,22.6 3.8,21 -21.5,20.2 -27.7,-10.2
+223710排气孔：16.5,-23.5 -16.5,-23.5
+223710定位孔：0,-38
+224610排气孔：16.5,-23.5 -16.5,-23.5
+224610定位孔：0,-38
+227210排气孔：16.5,-23.5 -16.5,-23.5
+227210定位孔：0,-38
+233310排气孔：16.5,-23.5 -16.5,-23.5
+233310定位孔：0,-38
+224610排气孔：16.5,-23 -20,-20
+224610定位孔：0,-38
+242010排气孔：16.5,-23.5 -16.5,-23.5
+242010定位孔：0,-38
+230210排气孔：16.5,-23 -20,-20
+230210定位孔：0,-38
+243110排气孔：15,-24.5 -15,-24.5
+243110定位孔：0,-38
+231910定位孔：0,-38
+227811定位孔：0,-38
+240911排气孔：13.2,-25.8 -20.5,-20.5
+240911排气孔：13.2,-25.8 -29,0 -20.5,-20.5
+英维克L6151510排气孔：16.5,-23.5 -16.5,-23.5
+英维克L6151510定位孔：0,-38
+
+下轴27.7模版原点：X0,Y-29.5，示例点：27.7,-10.2 21.5,20.2 -3.8,21 -19,22.6 -27.7,-10.2
+英维克L6160510排气孔：16.5,-23.5 -16.5,-23.5
+英维克L6160110标记点：-26,2
+241310排气孔：15,-24.5 -15,-24.5
+242210排气孔：16.5,-23 -16.5,-23
+244910排气孔：16.5,-23 -16.5,-23
+244910定位孔：0,-38
+
+主轴28.7模版原点：X0,Y-30.5 示例点：28.7,-10.4 19.6,23.4 4.6,22.8 -21.9,21.2 -28.7,-10.4
+360110定位孔：17,-24.9 -35.5,-24.7
+360410定位孔：17,-24.9 -35.5,-24.7
+320210排气孔：16,-25.4 -35.5,-24.7 -16.1,25.4
+320210定位孔：-35.5,-24.7
+356720定位孔：-35.5,-24.7
+356720排气孔：16.1,-25.4 -16.1,-25.4
+354810定位孔：14.5,-43.6 39,22.5 -39,22.5
+357010定位孔：-35.5,-24.7
+357010排气孔：16.1,-25.4 -16.1,-25.4
+357710定位孔：-35.5,-24.7
+357710排气孔：16.1,-25.4 -16.1,-25.4
+300210定位孔：-35.5,-24.7
+300210排气孔：16.1,-25.4 -16.1,-25.4
+
+下轴28.7模版原点：X0,Y-30.5，示例点：28.7,-10.4 21.2,21.9 -4.6,22.8 -19.6,23.4 -28.7,-10.4
+352910排气孔：16.1,-25.4 -16.1,-25.4
+353610排气孔：16.1,-25.4 -16.1,-25.4
+
+主轴33模版原点：X0,Y-35.0，示例点：33,-11 22,27 4.8,22.9 -24.4,25.1 -33,-11
+390611定位孔：-38,-25.5
+392310排气孔：18.3,-26.7 -18.7,-26.7
+392310沉孔：-2.5,-47.4 42.3,21.6 -39.8,25.9
+522010排气孔：20.3,-27.9 -33.4,8.3 -20.3,-27.9
+
+下轴33模版原点：X0,Y-35.0，示例点：33,-11 24,25.3 -4.6,25.9 -22,27 -33,-11
+521610排气孔：20.3,-27.9 33.4,8.3 -20.3,-27.9
+522310排气孔：20.3,-27.9 33.4,8.3 -20.3,-27.9
+522510排气孔：20.3,-27.9 -20.3,-27.9
+522510沉孔：32,11.5 -27.8,-19.5
+516820排气孔：20.3,-27.9 33.4,8.3 -20.3,-27.9
+521710排气孔：20.3,-27.9 33.4,8.3 -20.3,-27.9
+
+主轴37.2模版原点：X0,Y-39.0，示例点：37.2,-11.9 24.4,30.4 4.8,26.3 -27.6,27.6 -37.2,-11.9
+632710排气孔：22.5,-30.6 -22.5,-30.6
+632710定位孔：4.8,26.3 -33,-43
+631210排气孔：22.5,-30.6 -35.5,13.5 -22.5,-30.6
+631210定位孔：4.8,26.3 -33,-43
+
+主轴38.1模版原点：X0,Y-40，示例点：38.1,-12.2 25.1,31.2 5.4,28 -28.3,28.3 -22.5,-30.6
+712810排气孔：11.5,-36.2 22.5,-30.6 -38,6.5 -22.5,-30.6
+712810定位孔：-12,-34 -33.3,-47.5
+
+特别版28.7模版原点：X0,Y-30.5，示例点：16.1,-25.4 28.7,-10.4 21.2,21.9 -4.6,22.8 -19.6,23.4 -28.7,-10.4 -16.1,-25.4
+338910沉孔：28,12.4 -24.5,-18.3
+339110沉孔：28,12.4 -24.5,-18.3
+392010定位孔：-35.5,-24.7
+300210沉孔：28,12.4 -24.5,-18.3
+
+特别版33模版原点：X0,Y-35.0，示例点：19,-27.7 33,-11 22,27 4.6,24.5 -24.4,25.1 -33,-11 -19,-27.7
+392510定位孔：14,44.5 -35.5,-24.7
+
+下轴特别版33模版原点：X0,Y-35.0，示例点：19,-27.7 33,-11 24.4,25.1 -4.6,24.5 -22,27 -33,-11 -19,-27.7
+300410沉孔：17.4,-25.3 -17.4,-25.3
+300410沉孔2：32,14.2 -28,-20.9
+338010沉孔：32,14.2 -28,-20.9
+339810沉孔：17.4,-25.3 -17.4,-25.3
+339810沉孔2：32,14.2 -28,-20.9`;
+                }
+                
+                templates = parseTemplateFile(content);
+                console.log(`成功解析 ${Object.keys(templates).length} 个模板`);
+                
+                updateTemplateUI();
+                
+                try {
+                    localStorage.setItem('fiveHoleTemplates', JSON.stringify(templates));
+                    console.log('模板已保存到本地存储');
+                } catch (e) {
+                    console.log('本地存储不可用');
+                }
+                
+                showLoading(false);
+                return true;
+            } catch (error) {
+                console.error('加载模板文件失败:', error);
+                alert('加载模板文件失败，请检查网络连接');
+                showLoading(false);
+                return false;
+            }
+        }
+        
+        function sortTemplateNames(templateNames, category) {
+            if (category === '附加模板') {
+                return templateNames.sort((a, b) => {
+                    const numA = parseInt(a.match(/^(\d+)/)?.[1] || '999999');
+                    const numB = parseInt(b.match(/^(\d+)/)?.[1] || '999999');
+                    
+                    if (!isNaN(numA) && !isNaN(numB)) {
+                        return numA - numB;
+                    }
+                    
+                    if (!isNaN(numA) && isNaN(numB)) {
+                        return -1;
+                    }
+                    
+                    if (isNaN(numA) && !isNaN(numB)) {
+                        return 1;
+                    }
+                    
+                    const pinyinA = getFirstLetter(a);
+                    const pinyinB = getFirstLetter(b);
+                    
+                    if (pinyinA && pinyinB) {
+                        return pinyinA.localeCompare(pinyinB, 'zh-CN');
+                    }
+                    
+                    return a.localeCompare(b, 'zh-CN');
                 });
             }
-        }
-
-        // 检查是否已安装
-        function isAppInstalled() {
-            return window.matchMedia('(display-mode: standalone)').matches || 
-                   window.navigator.standalone === true;
-        }
-
-        // 隐藏安装提示
-        function hideInstallPrompt() {
-            document.getElementById('installPrompt').style.display = 'none';
-        }
-
-        // ==== 原有功能 ====
-        // 切换模板面板显示/隐藏
-        function toggleTemplatePanel() {
-            const panel = document.querySelector('.template-panel');
-            panel.classList.toggle('collapsed');
+            
+            return templateNames.sort((a, b) => a.localeCompare(b, 'zh-CN'));
         }
         
-        // 加载模板
+        function getFirstLetter(str) {
+            const brandMappings = {
+                '美的': 'M',
+                '英维克': 'Y',
+                '海尔': 'H',
+                '格力': 'G',
+                '海信': 'H',
+                'TCL': 'T',
+                '奥克斯': 'A'
+            };
+            
+            for (const brand in brandMappings) {
+                if (str.includes(brand)) {
+                    return brandMappings[brand];
+                }
+            }
+            
+            const firstChar = str.charAt(0);
+            const pinyinMap = {
+                '美': 'M', '英': 'Y', '海': 'H', '格': 'G', '奥': 'A',
+                '排': 'P', '沉': 'C', '定': 'D', '标': 'B', '粗': 'C'
+            };
+            
+            return pinyinMap[firstChar] || firstChar;
+        }
+        
+        function updateTemplateUI() {
+            const templateGroups = document.getElementById('template-groups');
+            const templateSelect = document.getElementById('template-select');
+            
+            templateGroups.innerHTML = '';
+            if (templateSelect) {
+                templateSelect.innerHTML = '<option value="">选择模板添加到组合</option>';
+            }
+            
+            const categories = {};
+            Object.keys(templates).forEach(templateName => {
+                const template = templates[templateName];
+                const category = template.category || '其他模板';
+                
+                if (!categories[category]) {
+                    categories[category] = [];
+                }
+                categories[category].push(templateName);
+            });
+            
+            const categoryOrder = ['主轴模板', '下轴模板', '特别版模板', '附加模板', '其他模板'];
+            
+            categoryOrder.forEach(category => {
+                if (categories[category] && categories[category].length > 0) {
+                    let templateNames = categories[category];
+                    templateNames = sortTemplateNames(templateNames, category);
+                    
+                    const groupDiv = document.createElement('div');
+                    groupDiv.className = 'template-group collapsible';
+                    
+                    const isCollapsed = !templateGroupStates[category];
+                    
+                    groupDiv.innerHTML = `
+                        <div class="template-group-header" onclick="toggleTemplateGroup('${category}')">
+                            <h4>${category} (${templateNames.length}个)</h4>
+                            <span class="toggle-icon ${isCollapsed ? 'collapsed' : ''}">▼</span>
+                        </div>
+                        <div class="template-group-content ${isCollapsed ? 'collapsed' : ''}" id="${category}-content">
+                            ${category === '附加模板' ? `
+                                <div class="template-search">
+                                    <input type="text" id="${category}-search" placeholder="搜索${category}..." oninput="filterTemplates('${category}', this.value)">
+                                    <span class="search-icon">🔍</span>
+                                </div>
+                            ` : ''}
+                            <div class="template-buttons" id="${category}-buttons">
+                                ${templateNames.map(name => 
+                                    `<button onclick="loadTemplate('${name}', ${templates[name].origin ? 'true' : 'false'})">${name}</button>`
+                                ).join('')}
+                            </div>
+                            <div id="${category}-not-found" class="template-not-found hidden">
+                                未找到匹配的模板
+                            </div>
+                        </div>
+                    `;
+                    templateGroups.appendChild(groupDiv);
+                    
+                    if (templateSelect) {
+                        const optgroup = document.createElement('optgroup');
+                        optgroup.label = category;
+                        templateNames.forEach(name => {
+                            const option = document.createElement('option');
+                            option.value = name;
+                            option.textContent = name;
+                            optgroup.appendChild(option);
+                        });
+                        templateSelect.appendChild(optgroup);
+                    }
+                }
+            });
+            
+            const loadingDiv = document.getElementById('template-loading');
+            if (loadingDiv) {
+                loadingDiv.style.display = 'none';
+            }
+            
+            // 初始化搜索关键词
+            categoryOrder.forEach(category => {
+                if (category === '附加模板') {
+                    searchKeywords[category] = '';
+                }
+            });
+        }
+        
+        function toggleTemplateGroup(category) {
+            const content = document.getElementById(`${category}-content`);
+            const toggleIcon = content.previousElementSibling.querySelector('.toggle-icon');
+            
+            if (content.classList.contains('collapsed')) {
+                content.classList.remove('collapsed');
+                toggleIcon.classList.remove('collapsed');
+                templateGroupStates[category] = true;
+            } else {
+                content.classList.add('collapsed');
+                toggleIcon.classList.add('collapsed');
+                templateGroupStates[category] = false;
+            }
+        }
+        
+        function filterTemplates(category, keyword) {
+            searchKeywords[category] = keyword.toLowerCase();
+            
+            const buttonsContainer = document.getElementById(`${category}-buttons`);
+            const notFoundDiv = document.getElementById(`${category}-not-found`);
+            const buttons = buttonsContainer.querySelectorAll('button');
+            
+            let visibleCount = 0;
+            
+            buttons.forEach(button => {
+                const templateName = button.textContent.toLowerCase();
+                if (keyword === '' || templateName.includes(keyword.toLowerCase())) {
+                    button.style.display = '';
+                    visibleCount++;
+                } else {
+                    button.style.display = 'none';
+                }
+            });
+            
+            if (visibleCount === 0 && keyword !== '') {
+                notFoundDiv.classList.remove('hidden');
+            } else {
+                notFoundDiv.classList.add('hidden');
+            }
+        }
+        
+        // ========== 递增计算器函数 ==========
+        function calculateStandardValues() {
+            if (!incrementalSelectedTemplate) {
+                standardXValue = 0;
+                standardCValue = 0;
+                return;
+            }
+            
+            const programText = document.getElementById('programContent').textContent;
+            if (!programText || programText.includes('暂无程序数据')) {
+                standardXValue = 0;
+                standardCValue = 0;
+                return;
+            }
+            
+            const programPoints = parseProgramPoints(programText);
+            if (programPoints.length === 0) {
+                standardXValue = 0;
+                standardCValue = 0;
+                return;
+            }
+            
+            if (isCombinationMode && selectedTemplates.length > 0) {
+                const templateIndex = selectedTemplates.indexOf(incrementalSelectedTemplate);
+                if (templateIndex !== -1) {
+                    let startPoint = 0;
+                    for (let i = 0; i < templateIndex; i++) {
+                        const tplName = selectedTemplates[i];
+                        const tpl = templates[tplName];
+                        if (tpl) {
+                            startPoint += tpl.points.length;
+                        }
+                    }
+                    
+                    const template = templates[incrementalSelectedTemplate];
+                    if (template) {
+                        if (startPoint < programPoints.length) {
+                            standardXValue = programPoints[startPoint].x;
+                            standardCValue = programPoints[startPoint].c;
+                        } else {
+                            standardXValue = programPoints[0].x;
+                            standardCValue = programPoints[0].c;
+                        }
+                    }
+                } else {
+                    standardXValue = programPoints[0].x;
+                    standardCValue = programPoints[0].c;
+                }
+            } else {
+                standardXValue = programPoints[0].x;
+                standardCValue = programPoints[0].c;
+            }
+            
+            console.log('标准值计算:', {
+                template: incrementalSelectedTemplate,
+                isCombinationMode: isCombinationMode,
+                standardXValue: standardXValue,
+                standardCValue: standardCValue,
+                programPointsCount: programPoints.length
+            });
+        }
+        
+        function parseProgramPoints(programText) {
+            const lines = programText.split('\n');
+            const points = [];
+            
+            lines.forEach(line => {
+                line = line.trim();
+                if (line.startsWith('X') && line.includes('C')) {
+                    const match = line.match(/X([-\d.]+)C([-\d.]+)/);
+                    if (match) {
+                        const xValue = parseFloat(match[1]);
+                        const cValue = parseFloat(match[2]);
+                        points.push({ x: xValue, c: cValue });
+                    }
+                }
+            });
+            
+            return points;
+        }
+        
+        function showStandardValueInfo() {
+            const infoDiv = document.getElementById('standardValueHighlight');
+            
+            if (incrementalSelectedTemplate) {
+                infoDiv.innerHTML = `
+                    <h4>标准值信息</h4>
+                    <div class="standard-values">
+                        <div class="standard-value-item">
+                            <div class="label">标准X值</div>
+                            <div class="value" id="standardXValueDisplay">${standardXValue.toFixed(2)}</div>
+                        </div>
+                        <div class="standard-value-item">
+                            <div class="label">标准C值</div>
+                            <div class="value" id="standardCValueDisplay">${standardCValue.toFixed(2)}</div>
+                        </div>
+                    </div>
+                    <div style="font-size: 0.8em; color: var(--text-secondary); margin-top: 10px;">
+                        注：标准值为程序中第一个点的X和C值
+                    </div>
+                `;
+                infoDiv.style.display = 'block';
+            } else {
+                infoDiv.style.display = 'none';
+            }
+        }
+        
+        function updateIncrementalDisplay() {
+            if (!incrementalSelectedTemplate) {
+                clearIncrementalInputs();
+                return;
+            }
+            
+            document.getElementById('standardXValue').textContent = standardXValue.toFixed(2);
+            document.getElementById('standardCValue').textContent = standardCValue.toFixed(2);
+            
+            const standardXDisplay = document.getElementById('standardXValueDisplay');
+            const standardCDisplay = document.getElementById('standardCValueDisplay');
+            if (standardXDisplay) standardXDisplay.textContent = standardXValue.toFixed(2);
+            if (standardCDisplay) standardCDisplay.textContent = standardCValue.toFixed(2);
+            
+            calculateAdjustedValues();
+        }
+        
+        function clearIncrementalInputs() {
+            document.getElementById('standardXValue').textContent = '--';
+            document.getElementById('standardCValue').textContent = '0.00';
+            document.getElementById('adjustedXValue').textContent = '--';
+            document.getElementById('adjustedCValue').textContent = '0.00';
+            
+            document.getElementById('xAdjustment').value = '0.00';
+            document.getElementById('cAdjustment').value = '0.00';
+        }
+        
+        function calculateAdjustedValues() {
+            xAdjustment = parseFloat(document.getElementById('xAdjustment').value) || 0;
+            cAdjustment = parseFloat(document.getElementById('cAdjustment').value) || 0;
+            
+            const adjustedX = standardXValue + xAdjustment;
+            const adjustedC = standardCValue + cAdjustment;
+            
+            document.getElementById('adjustedXValue').textContent = adjustedX.toFixed(2);
+            document.getElementById('adjustedCValue').textContent = adjustedC.toFixed(2);
+        }
+        
+        function applyAdjustments() {
+            if (!incrementalSelectedTemplate) {
+                alert("请先选择模板");
+                return;
+            }
+            
+            xAdjustment = parseFloat(document.getElementById('xAdjustment').value) || 0;
+            cAdjustment = parseFloat(document.getElementById('cAdjustment').value) || 0;
+            
+            calculateAdjustedProgram();
+            
+            if (xAdjustment !== 0 || cAdjustment !== 0) {
+                let msg = "调整已应用：\n";
+                if (xAdjustment !== 0) msg += `X值调整：${xAdjustment > 0 ? '+' : ''}${xAdjustment.toFixed(2)}mm\n`;
+                if (cAdjustment !== 0) msg += `C值调整：${cAdjustment > 0 ? '+' : ''}${cAdjustment.toFixed(2)}°`;
+                console.log(msg);
+            }
+        }
+        
+        function resetAdjustments() {
+            document.getElementById('xAdjustment').value = '0.00';
+            document.getElementById('cAdjustment').value = '0.00';
+            
+            xAdjustment = 0;
+            cAdjustment = 0;
+            
+            calculateAdjustedValues();
+            calculateAdjustedProgram();
+        }
+        
+        function calculateAdjustedProgram() {
+            if (incrementalSelectedTemplate) {
+                calculateStandardValues();
+                updateIncrementalDisplay();
+            }
+            
+            const programText = document.getElementById('programContent').textContent;
+            if (programText.includes('暂无程序数据')) {
+                document.getElementById('adjustedProgramContent').textContent = "请先在五孔计算器中生成程序";
+                return;
+            }
+            
+            const originalPoints = parseProgramPoints(programText);
+            if (originalPoints.length === 0) {
+                document.getElementById('adjustedProgramContent').textContent = "无法解析原始程序";
+                return;
+            }
+            
+            xAdjustment = parseFloat(document.getElementById('xAdjustment').value) || 0;
+            cAdjustment = parseFloat(document.getElementById('cAdjustment').value) || 0;
+            
+            const adjustedProgram = generateAdjustedProgram(programText, originalPoints);
+            document.getElementById('adjustedProgramContent').textContent = adjustedProgram;
+            
+            updateComparisonTable(originalPoints, adjustedProgram);
+            
+            console.log('程序调整计算完成:', {
+                originalPoints: originalPoints.length,
+                xAdjustment: xAdjustment,
+                cAdjustment: cAdjustment,
+                adjustedProgramLength: adjustedProgram.length
+            });
+        }
+        
+        function generateAdjustedProgram(originalProgram, originalPoints) {
+            const lines = originalProgram.split('\n');
+            let adjustedLines = [];
+            let pointIndex = 0;
+            
+            lines.forEach(line => {
+                const trimmedLine = line.trim();
+                
+                if (trimmedLine.startsWith('X') && trimmedLine.includes('C')) {
+                    if (pointIndex < originalPoints.length) {
+                        const adjustedX = originalPoints[pointIndex].x + xAdjustment;
+                        const adjustedC = originalPoints[pointIndex].c + cAdjustment;
+                        
+                        adjustedLines.push(`X${adjustedX.toFixed(2)}C${adjustedC.toFixed(2)}`);
+                        pointIndex++;
+                    } else {
+                        adjustedLines.push(line);
+                    }
+                } else {
+                    adjustedLines.push(line);
+                }
+            });
+            
+            return adjustedLines.join('\n');
+        }
+        
+        function updateComparisonTable(originalPoints, adjustedProgram) {
+            const tableBody = document.getElementById('comparisonTableBody');
+            tableBody.innerHTML = '';
+            
+            if (originalPoints.length === 0) {
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="7" style="text-align: center; padding: 20px; color: var(--text-secondary);">
+                            暂无数据
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            const adjustedLines = adjustedProgram.split('\n');
+            const adjustedPoints = [];
+            
+            adjustedLines.forEach(line => {
+                line = line.trim();
+                if (line.startsWith('X') && line.includes('C')) {
+                    const match = line.match(/X([-\d.]+)C([-\d.]+)/);
+                    if (match) {
+                        const xValue = parseFloat(match[1]);
+                        const cValue = parseFloat(match[2]);
+                        adjustedPoints.push({ x: xValue, c: cValue });
+                    }
+                }
+            });
+            
+            for (let i = 0; i < originalPoints.length; i++) {
+                const original = originalPoints[i];
+                const adjusted = adjustedPoints[i] || { x: 0, c: 0 };
+                
+                const xDiff = adjusted.x - original.x;
+                const cDiff = adjusted.c - original.c;
+                
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${i + 1}</td>
+                    <td class="original-value">${original.x.toFixed(2)}</td>
+                    <td class="adjusted-value">${adjusted.x.toFixed(2)}</td>
+                    <td class="difference">${xDiff > 0 ? '+' : ''}${xDiff.toFixed(2)}</td>
+                    <td class="original-value">${original.c.toFixed(2)}</td>
+                    <td class="adjusted-value">${adjusted.c.toFixed(2)}</td>
+                    <td class="difference">${cDiff > 0 ? '+' : ''}${cDiff.toFixed(2)}</td>
+                `;
+                tableBody.appendChild(row);
+            }
+        }
+        
+        function exportAdjustedProgram() {
+            const adjustedProgram = document.getElementById('adjustedProgramContent').textContent;
+            
+            if (adjustedProgram.includes('暂无程序数据') || adjustedProgram.includes('无法解析') || 
+                adjustedProgram.includes('请先选择')) {
+                alert("请先生成调整后的程序");
+                return;
+            }
+            
+            openProgramNameModal();
+            
+            const originalExport = window.exportProgram;
+            window.exportProgram = function() {
+                const programName = document.getElementById('programName').value.trim();
+                
+                if (!programName) {
+                    alert("请输入程序名称");
+                    document.getElementById('programName').focus();
+                    return;
+                }
+
+                showLoading(true);
+                
+                setTimeout(() => {
+                    try {
+                        const programContent = document.getElementById('adjustedProgramContent').textContent;
+                        
+                        const blob = new Blob([programContent], { 
+                            type: 'text/plain;charset=utf-8' 
+                        });
+                        
+                        const link = document.createElement('a');
+                        link.download = programName;
+                        link.href = URL.createObjectURL(blob);
+                        
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                        
+                        URL.revokeObjectURL(link.href);
+                        
+                        closeProgramNameModal();
+                        
+                        alert(`调整后的程序文件 "${programName}" 导出成功！`);
+                        
+                        window.exportProgram = originalExport;
+                        
+                    } catch (error) {
+                        alert('导出程序失败：' + error.message);
+                    } finally {
+                        showLoading(false);
+                    }
+                }, 100);
+            };
+            
+            document.getElementById('programName').value = "调整后的程序";
+        }
+        
+        // ========== 程序相关函数 ==========
+        function switchFormat(format) {
+            currentFormat = format;
+            
+            document.getElementById('format1Btn').classList.toggle('active', format === 1);
+            document.getElementById('format2Btn').classList.toggle('active', format === 2);
+            
+            updateProgramDisplay();
+            
+            calculateAdjustedProgram();
+        }
+        
+        function openProgramNameModal() {
+            const modal = document.getElementById('programNameModal');
+            modal.classList.add('active');
+            document.getElementById('programName').focus();
+            document.getElementById('programName').value = '';
+        }
+        
+        function closeProgramNameModal() {
+            document.getElementById('programNameModal').classList.remove('active');
+            document.getElementById('programName').value = '';
+        }
+        
+        function exportProgram() {
+            const programName = document.getElementById('programName').value.trim();
+            
+            if (!programName) {
+                alert("请输入程序名称");
+                document.getElementById('programName').focus();
+                return;
+            }
+
+            showLoading(true);
+            
+            setTimeout(() => {
+                try {
+                    const programContent = document.getElementById('programContent').textContent;
+                    
+                    const blob = new Blob([programContent], { 
+                        type: 'text/plain;charset=utf-8' 
+                    });
+                    
+                    const link = document.createElement('a');
+                    link.download = programName;
+                    link.href = URL.createObjectURL(blob);
+                    
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    
+                    URL.revokeObjectURL(link.href);
+                    
+                    closeProgramNameModal();
+                    
+                    alert(`程序文件 "${programName}" 导出成功！`);
+                    
+                } catch (error) {
+                    alert('导出程序失败：' + error.message);
+                } finally {
+                    showLoading(false);
+                }
+            }, 100);
+        }
+        
+        function isAdditionalTemplate(templateName) {
+            const template = templates[templateName];
+            return template && (!template.origin || template.category === '附加模板');
+        }
+        
+        function updateProgramDisplay() {
+            const programContent = generateProgram();
+            document.getElementById('programContent').textContent = programContent;
+            
+            if (incrementalSelectedTemplate) {
+                calculateStandardValues();
+                updateIncrementalDisplay();
+                showStandardValueInfo();
+            }
+            
+            calculateAdjustedProgram();
+        }
+        
+        function generateProgram() {
+            if (calculatedResults.length === 0 || points.length === 0) {
+                return "暂无程序数据，请先加载模板或添加点。";
+            }
+            
+            let program = "";
+            
+            const currentTemplateName = selectedTemplates.length > 0 ? selectedTemplates[0] : '';
+            const isAdditional = isAdditionalTemplate(currentTemplateName);
+            
+            const startDistance = calculateDistance(O, A);
+            const startDiameter = (startDistance * 2).toFixed(2);
+            
+            const generateStandardProgram = () => {
+                let prog = `$1\n`;
+                prog += `T0\n`;
+                prog += `G0Z50.0\n`;
+                prog += `X${startDiameter}C0.0\n`;
+                prog += `Z2.0\n`;
+                prog += `G83Z-15.3R2.0F300\n`;
+                
+                if (isCombinationMode) {
+                    let pointIndex = 0;
+                    
+                    for (let templateIndex = 0; templateIndex < selectedTemplates.length; templateIndex++) {
+                        const templateName = selectedTemplates[templateIndex];
+                        const template = templates[templateName];
+                        if (!template) continue;
+                        
+                        const templatePoints = template.points;
+                        const isTemplateAdditional = isAdditionalTemplate(templateName);
+                        
+                        if (isTemplateAdditional) {
+                            for (let i = 0; i < templatePoints.length; i++) {
+                                const point = templatePoints[i];
+                                const distanceToCenter = calculateDistance(O, point);
+                                const diameter = (distanceToCenter * 2).toFixed(2);
+                                
+                                let angle;
+                                if (i === 0) {
+                                    angle = calculateSectorAngle(O, A, point);
+                                } else {
+                                    const prevPoint = templatePoints[i-1];
+                                    angle = calculateSectorAngle(O, prevPoint, point);
+                                    
+                                    if (Math.abs(angle) < 5) {
+                                        angle = -angle;
+                                    }
+                                }
+                                
+                                prog += `X${diameter}C${angle.toFixed(2)}\n`;
+                            }
+                        } else {
+                            let cumulativeAngle = 0;
+                            for (let i = 0; i < templatePoints.length; i++) {
+                                const point = templatePoints[i];
+                                const distanceToCenter = calculateDistance(O, point);
+                                const diameter = (distanceToCenter * 2).toFixed(2);
+                                
+                                const resultIndex = pointIndex + i;
+                                if (resultIndex < calculatedResults.length) {
+                                    cumulativeAngle += parseFloat(calculatedResults[resultIndex].angle);
+                                }
+                                
+                                prog += `X${diameter}C${cumulativeAngle.toFixed(2)}\n`;
+                            }
+                        }
+                        
+                        pointIndex += templatePoints.length;
+                    }
+                } else if (isAdditional) {
+                    for (let i = 0; i < points.length; i++) {
+                        const point = points[i];
+                        const distanceToCenter = calculateDistance(O, point);
+                        const diameter = (distanceToCenter * 2).toFixed(2);
+                        
+                        let angle;
+                        if (i === 0) {
+                            angle = calculateSectorAngle(O, A, point);
+                        } else {
+                            const prevPoint = points[i-1];
+                            angle = calculateSectorAngle(O, prevPoint, point);
+                            
+                            if (Math.abs(angle) < 5) {
+                                angle = -angle;
+                            }
+                        }
+                        
+                        prog += `X${diameter}C${angle.toFixed(2)}\n`;
+                    }
+                } else {
+                    let cumulativeAngle = 0;
+                    for (let i = 0; i < points.length; i++) {
+                        const point = points[i];
+                        const distanceToCenter = calculateDistance(O, point);
+                        const diameter = (distanceToCenter * 2).toFixed(2);
+                        
+                        if (i < calculatedResults.length) {
+                            cumulativeAngle += parseFloat(calculatedResults[i].angle);
+                        }
+                        
+                        prog += `X${diameter}C${cumulativeAngle.toFixed(2)}\n`;
+                    }
+                }
+                
+                prog += `G0Z50.0\nM30\n`;
+                
+                return prog;
+            };
+            
+            if (currentFormat === 1) {
+                program = generateStandardProgram();
+                
+            } else if (currentFormat === 2) {
+                const program1 = generateStandardProgram();
+                program = program1 + "\n$2\n";
+            }
+            
+            return program;
+        }
+        
+        // ========== 模板库函数（移动端优化） ==========
+        function toggleTemplatePanel() {
+            const panel = document.getElementById('templatePanel');
+            const overlay = document.getElementById('templateOverlay');
+            
+            if (panel.classList.contains('active')) {
+                panel.classList.remove('active');
+                overlay.classList.remove('active');
+                document.body.style.overflow = 'auto';
+            } else {
+                panel.classList.add('active');
+                overlay.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            }
+        }
+        
+        function closeTemplatePanel() {
+            const panel = document.getElementById('templatePanel');
+            const overlay = document.getElementById('templateOverlay');
+            
+            panel.classList.remove('active');
+            overlay.classList.remove('active');
+            document.body.style.overflow = 'auto';
+        }
+        
+        function switchTab(tabNumber) {
+            document.getElementById('tab1').classList.toggle('active', tabNumber === 1);
+            document.getElementById('tab2').classList.toggle('active', tabNumber === 2);
+            
+            document.getElementById('calculator-tab').classList.toggle('active', tabNumber === 1);
+            document.getElementById('incremental-tab').classList.toggle('active', tabNumber === 2);
+            
+            // 切换标签页时自动关闭模板库
+            closeTemplatePanel();
+            
+            if (tabNumber === 2) {
+                calculateAdjustedProgram();
+            }
+        }
+        
         function loadTemplate(templateName, replaceOrigin) {
             if (templates[templateName]) {
                 const template = templates[templateName];
                 
-                // 重置组合模式
                 isCombinationMode = false;
-                selectedTemplates = [];
+                selectedTemplates = [templateName];
                 updateSelectedTemplatesDisplay();
                 
-                // 如果是基础模板且需要更换原点
                 if (replaceOrigin && template.origin) {
-                    // 更换起点
                     A.x = template.origin.x;
                     A.y = template.origin.y;
                     document.getElementById('startX').value = A.x;
                     document.getElementById('startY').value = A.y;
-                    product = Math.abs(A.y) * 2; // 更新积数
+                    product = Math.abs(A.y) * 2;
                     
-                    // 更换路径点
                     points = [...template.points];
                 } else {
-                    // 只添加路径点，不更换起点
                     points = [...template.points];
                 }
                 
                 updatePointsDisplay();
                 calculateAll();
                 
-                // 关闭模板面板
-                document.querySelector('.template-panel').classList.add('collapsed');
+                // 更新递增计算器的模板选择
+                incrementalSelectedTemplate = templateName;
+                document.getElementById('templateInfoText').textContent = templateName;
+                calculateStandardValues();
+                updateIncrementalDisplay();
+                showStandardValueInfo();
+                
+                // 更新调整值显示
+                resetAdjustments();
+                
+                // 关闭模板库
+                closeTemplatePanel();
+                
+                // 移动端震动反馈
+                if (isMobile && navigator.vibrate) {
+                    navigator.vibrate(100);
+                }
+            } else {
+                alert(`未找到模板: ${templateName}`);
             }
         }
         
-        // 添加模板到组合
         function addTemplateToCombination() {
             const templateSelect = document.getElementById('template-select');
             const templateName = templateSelect.value;
@@ -830,32 +3350,42 @@
                 return;
             }
             
-            // 检查是否已添加
+            if (!templates[templateName]) {
+                alert("选择的模板不存在");
+                return;
+            }
+            
             if (selectedTemplates.includes(templateName)) {
                 alert("该模板已添加到组合中");
                 return;
             }
             
-            // 添加到组合
             selectedTemplates.push(templateName);
             updateSelectedTemplatesDisplay();
             
-            // 重置选择
             templateSelect.value = "";
+            
+            // 移动端震动反馈
+            if (isMobile && navigator.vibrate) {
+                navigator.vibrate(50);
+            }
         }
         
-        // 从组合中移除模板
         function removeTemplateFromCombination(index) {
             selectedTemplates.splice(index, 1);
             updateSelectedTemplatesDisplay();
+            
+            // 移动端震动反馈
+            if (isMobile && navigator.vibrate) {
+                navigator.vibrate(30);
+            }
         }
         
-        // 更新选择的模板显示
         function updateSelectedTemplatesDisplay() {
             const container = document.getElementById('selected-templates');
             
             if (selectedTemplates.length === 0) {
-                container.innerHTML = '<div style="text-align: center; color: #999; padding: 10px;">暂无选择的模板</div>';
+                container.innerHTML = '<div style="text-align: center; color: var(--text-secondary); padding: 10px;">暂无选择的模板</div>';
                 return;
             }
             
@@ -864,75 +3394,91 @@
                 html += `
                     <div class="selected-template-item">
                         <span>${templateName}</span>
-                        <button onclick="removeTemplateFromCombination(${index})" class="btn-red" style="padding: 4px 8px; font-size: 0.8em;">移除</button>
+                        <button onclick="removeTemplateFromCombination(${index})" class="btn-red" style="padding: 8px 12px; font-size: 0.8em;">移除</button>
                     </div>
                 `;
             });
             container.innerHTML = html;
         }
         
-        // 清空模板组合
         function clearTemplateCombination() {
             selectedTemplates = [];
             updateSelectedTemplatesDisplay();
+            
+            // 移动端震动反馈
+            if (isMobile && navigator.vibrate) {
+                navigator.vibrate(50);
+            }
         }
         
-        // 加载多模板组合
         function loadMultiTemplateCombination() {
             if (selectedTemplates.length === 0) {
                 alert("请至少选择一个模板");
                 return;
             }
             
-            // 设置组合模式
             isCombinationMode = true;
             
-            // 使用第一个模板的起点
-            let combinedOrigin = { x: 0, y: -35 }; // 默认起点
+            let combinedOrigin = { x: 0, y: -35 };
             if (templates[selectedTemplates[0]] && templates[selectedTemplates[0]].origin) {
                 combinedOrigin = { ...templates[selectedTemplates[0]].origin };
             }
             
-            // 设置起点
             A.x = combinedOrigin.x;
             A.y = combinedOrigin.y;
             document.getElementById('startX').value = A.x;
             document.getElementById('startY').value = A.y;
-            product = Math.abs(A.y) * 2; // 更新积数
+            product = Math.abs(A.y) * 2;
             
-            // 合并所有模板的路径点
             points = [];
+            templatePointGroups = [];
             selectedTemplates.forEach(templateName => {
                 if (templates[templateName]) {
-                    points = points.concat(templates[templateName].points);
+                    const templatePoints = templates[templateName].points;
+                    points = points.concat(templatePoints);
+                    templatePointGroups.push({
+                        name: templateName,
+                        points: templatePoints,
+                        isAdditional: isAdditionalTemplate(templateName)
+                    });
                 }
             });
             
             updatePointsDisplay();
             calculateAll();
             
-            // 关闭模板面板
-            document.querySelector('.template-panel').classList.add('collapsed');
+            // 更新递增计算器的模板选择
+            if (selectedTemplates.length === 1) {
+                incrementalSelectedTemplate = selectedTemplates[0];
+                document.getElementById('templateInfoText').textContent = incrementalSelectedTemplate;
+                calculateStandardValues();
+                updateIncrementalDisplay();
+                showStandardValueInfo();
+            } else {
+                incrementalSelectedTemplate = null;
+                document.getElementById('templateInfoText').textContent = "多模板组合";
+                clearIncrementalInputs();
+                document.getElementById('standardValueHighlight').style.display = 'none';
+            }
+            
+            // 关闭模板库
+            closeTemplatePanel();
+            
+            // 移动端震动反馈
+            if (isMobile && navigator.vibrate) {
+                navigator.vibrate(100);
+            }
         }
         
-        // 显示更多模板
-        function showMoreTemplates() {
-            alert("更多模板功能正在开发中...\n当前版本已包含常用模板，如需更多模板请联系开发人员。");
-        }
-        
-        // 初始化画布
+        // ========== 画布相关函数 ==========
         let canvas, ctx;
         
         function initCanvas() {
-            // 主画布
             canvas = document.getElementById('diagram');
             ctx = canvas.getContext('2d');
             
             resizeCanvas();
             window.addEventListener('resize', resizeCanvas);
-            
-            // 初始化拖拽功能
-            initDragAndDrop();
         }
         
         function resizeCanvas() {
@@ -943,68 +3489,7 @@
             if (points.length > 0) calculateAll();
         }
         
-        // 初始化拖拽功能
-        function initDragAndDrop() {
-            const container = document.getElementById('points-container');
-            
-            container.addEventListener('dragstart', function(e) {
-                if (e.target.classList.contains('point-item')) {
-                    dragItem = e.target;
-                    setTimeout(() => {
-                        dragItem.classList.add('dragging');
-                    }, 0);
-                }
-            });
-            
-            container.addEventListener('dragend', function() {
-                if (dragItem) {
-                    dragItem.classList.remove('dragging');
-                    dragItem = null;
-                }
-            });
-            
-            container.addEventListener('dragover', function(e) {
-                e.preventDefault();
-                const afterElement = getDragAfterElement(container, e.clientY);
-                const currentItem = document.querySelector('.dragging');
-                if (currentItem && afterElement) {
-                    container.insertBefore(currentItem, afterElement);
-                }
-            });
-            
-            // 拖拽结束后更新点顺序
-            container.addEventListener('drop', function() {
-                updatePointsOrder();
-            });
-        }
-        
-        function getDragAfterElement(container, y) {
-            const draggableElements = [...container.querySelectorAll('.point-item:not(.dragging)')];
-            
-            return draggableElements.reduce((closest, child) => {
-                const box = child.getBoundingClientRect();
-                const offset = y - box.top - box.height / 2;
-                if (offset < 0 && offset > closest.offset) {
-                    return { offset: offset, element: child };
-                } else {
-                    return closest;
-                }
-            }, { offset: Number.NEGATIVE_INFINITY }).element;
-        }
-        
-        // 更新点顺序
-        function updatePointsOrder() {
-            const container = document.getElementById('points-container');
-            const newPoints = [];
-            container.querySelectorAll('.point-item').forEach(item => {
-                const index = parseInt(item.dataset.index);
-                newPoints.push(points[index]);
-            });
-            points = newPoints;
-            calculateAll();
-        }
-        
-        // 更新起点
+        // ========== 点管理函数 ==========
         function updateStartPoint() {
             const startX = parseFloat(document.getElementById('startX').value);
             const startY = parseFloat(document.getElementById('startY').value);
@@ -1012,13 +3497,12 @@
             if (!isNaN(startX)) A.x = startX;
             if (!isNaN(startY)) {
                 A.y = startY;
-                product = Math.abs(A.y) * 2; // 更新积数
+                product = Math.abs(A.y) * 2;
             }
             
             calculateAll();
         }
         
-        // 添加新点
         function addPoint() {
             const x = parseFloat(document.getElementById('newX').value);
             const y = parseFloat(document.getElementById('newY').value);
@@ -1032,12 +3516,15 @@
             updatePointsDisplay();
             calculateAll();
             
-            // 清空输入
             document.getElementById('newX').value = '';
             document.getElementById('newY').value = '';
+            
+            // 移动端震动反馈
+            if (isMobile && navigator.vibrate) {
+                navigator.vibrate(50);
+            }
         }
         
-        // 更新点列表显示
         function updatePointsDisplay() {
             const container = document.getElementById('points-container');
             container.innerHTML = '';
@@ -1045,18 +3532,15 @@
             points.forEach((point, index) => {
                 const div = document.createElement('div');
                 div.className = 'point-item';
-                div.dataset.index = index;
-                div.draggable = true;
                 
                 let pointLabel = `点 ${index + 1}`;
                 if (isCombinationMode) {
-                    // 组合模式下，计算当前点属于哪个模板
                     let templateIndex = 0;
                     let pointCount = 0;
                     
                     for (let i = 0; i < selectedTemplates.length; i++) {
                         const templateName = selectedTemplates[i];
-                        const templatePoints = templates[templateName].points;
+                        const templatePoints = templates[templateName]?.points || [];
                         
                         if (index < pointCount + templatePoints.length) {
                             templateIndex = i;
@@ -1070,15 +3554,14 @@
                 
                 div.innerHTML = `
                     <span>${pointLabel}:</span>
-                    <input type="number" value="${point.x}" onchange="updatePoint(${index}, 'x', this.value)" step="0.1">
-                    <input type="number" value="${point.y}" onchange="updatePoint(${index}, 'y', this.value)" step="0.1">
+                    <input type="number" value="${point.x}" onchange="updatePoint(${index}, 'x', this.value)" step="0.1" inputmode="decimal">
+                    <input type="number" value="${point.y}" onchange="updatePoint(${index}, 'y', this.value)" step="0.1" inputmode="decimal">
                     <button onclick="removePoint(${index})" class="btn-red">删除</button>
                 `;
                 container.appendChild(div);
             });
         }
         
-        // 更新点坐标
         function updatePoint(index, coord, value) {
             const num = parseFloat(value);
             if (!isNaN(num)) {
@@ -1087,32 +3570,42 @@
             }
         }
         
-        // 删除点
         function removePoint(index) {
             points.splice(index, 1);
             updatePointsDisplay();
             calculateAll();
+            
+            // 移动端震动反馈
+            if (isMobile && navigator.vibrate) {
+                navigator.vibrate(30);
+            }
         }
         
-        // 清空所有点
         function clearAll() {
             points = [];
             isCombinationMode = false;
             selectedTemplates = [];
+            templatePointGroups = [];
             updateSelectedTemplatesDisplay();
             updatePointsDisplay();
             document.querySelector('#result-table tbody').innerHTML = '';
             clearCanvas();
+            calculatedResults = [];
+            updateProgramDisplay();
+            calculateAdjustedProgram();
+            
+            // 移动端震动反馈
+            if (isMobile && navigator.vibrate) {
+                navigator.vibrate(100);
+            }
         }
         
-        // 清空画布
         function clearCanvas() {
             if (ctx) {
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
             }
         }
         
-        // 切换画布可见性
         function toggleCanvas() {
             canvasVisible = !canvasVisible;
             canvas.style.display = canvasVisible ? 'block' : 'none';
@@ -1122,98 +3615,129 @@
             if (canvasVisible) {
                 resizeCanvas();
             }
+            
+            // 移动端震动反馈
+            if (isMobile && navigator.vibrate) {
+                navigator.vibrate(50);
+            }
         }
         
-        // 反转点顺序
         function reversePoints() {
             points.reverse();
             updatePointsDisplay();
             calculateAll();
+            
+            // 移动端震动反馈
+            if (isMobile && navigator.vibrate) {
+                navigator.vibrate(50);
+            }
         }
         
-        // 计算两点之间距离
+        // ========== 计算函数 ==========
         function calculateDistance(point1, point2) {
             const dx = point2.x - point1.x;
             const dy = point2.y - point1.y;
             return Math.sqrt(dx * dx + dy * dy);
         }
         
-        // 计算直径（先计算距离，然后四舍五入保留两位小数）
         function calculateDiameter(distance) {
-            // 公式：直径 = 距离 × 2，然后四舍五入保留两位小数
             const rawDiameter = distance * 2;
-            // 四舍五入到小数点后两位
             const roundedDiameter = Math.round(rawDiameter * 100) / 100;
             return roundedDiameter.toFixed(2);
         }
         
-        // 计算所有扇形角度和直径
         function calculateAll() {
             if (points.length === 0) {
                 clearCanvas();
+                updateProgramDisplay();
+                calculateAdjustedProgram();
                 return;
             }
             
-            const results = [];
+            calculatedResults = [];
             let prevPoint = A;
             
             if (isCombinationMode) {
-                // 组合模式：分别计算每个模板的扇形
                 let pointCount = 0;
                 
                 for (let templateIndex = 0; templateIndex < selectedTemplates.length; templateIndex++) {
                     const templateName = selectedTemplates[templateIndex];
-                    const templatePoints = templates[templateName].points;
+                    const template = templates[templateName];
+                    if (!template) continue;
                     
-                    let templatePrevPoint = A;
+                    const templatePoints = template.points;
+                    const isTemplateAdditional = isAdditionalTemplate(templateName);
                     
-                    // 计算当前模板的扇形
-                    for (let i = 0; i < templatePoints.length; i++) {
-                        const point = templatePoints[i];
-                        const angle = calculateSectorAngle(O, templatePrevPoint, point);
-                        const distance = calculateDistance(O, point);
-                        const diameter = calculateDiameter(distance);
-                        
-                        results.push({
-                            name: `扇形 ${templateIndex + 1}-${i + 1}`,
-                            start: { ...templatePrevPoint },
-                            end: { ...point },
-                            distance: distance.toFixed(2),
-                            angle: angle.toFixed(2),
-                            diameter: diameter
-                        });
-                        
-                        templatePrevPoint = point;
+                    if (isTemplateAdditional) {
+                        for (let i = 0; i < templatePoints.length; i++) {
+                            const point = templatePoints[i];
+                            const distance = calculateDistance(O, point);
+                            const diameter = calculateDiameter(distance);
+                            
+                            let angle;
+                            if (i === 0) {
+                                angle = calculateSectorAngle(O, A, point);
+                            } else {
+                                const prevTemplatePoint = templatePoints[i-1];
+                                angle = calculateSectorAngle(O, prevTemplatePoint, point);
+                            }
+                            
+                            calculatedResults.push({
+                                name: `点 ${templateIndex + 1}-${i + 1}`,
+                                start: { ...prevPoint },
+                                end: { ...point },
+                                distance: distance.toFixed(2),
+                                angle: angle.toFixed(2),
+                                diameter: diameter
+                            });
+                            
+                            prevPoint = point;
+                        }
+                    } else {
+                        for (let i = 0; i < templatePoints.length; i++) {
+                            const point = templatePoints[i];
+                            const angle = calculateSectorAngle(O, prevPoint, point);
+                            const distance = calculateDistance(O, point);
+                            const diameter = calculateDiameter(distance);
+                            
+                            calculatedResults.push({
+                                name: `扇形 ${templateIndex + 1}-${i + 1}`,
+                                start: { ...prevPoint },
+                                end: { ...point },
+                                distance: distance.toFixed(2),
+                                angle: angle.toFixed(2),
+                                diameter: diameter
+                            });
+                            
+                            prevPoint = point;
+                        }
                     }
-                    
-                    // 当前模板的闭合扇形
-                    const finalAngle = calculateSectorAngle(O, templatePrevPoint, A);
-                    const startDistance = calculateDistance(O, A);
-                    const finalDiameter = calculateDiameter(startDistance);
-                    
-                    results.push({
-                        name: `扇形 ${templateIndex + 1}-${templatePoints.length + 1}`,
-                        start: { ...templatePrevPoint },
-                        end: { ...A },
-                        distance: startDistance.toFixed(2),
-                        angle: finalAngle.toFixed(2),
-                        diameter: finalDiameter
-                    });
                     
                     pointCount += templatePoints.length;
                 }
                 
-            } else {
-                // 普通模式
-                const startDistance = calculateDistance(O, A); // 圆心到起点的距离
+                const finalAngle = calculateSectorAngle(O, prevPoint, A);
+                const startDistance = calculateDistance(O, A);
+                const finalDiameter = calculateDiameter(startDistance);
                 
-                // 计算每个扇形区域
+                calculatedResults.push({
+                    name: `闭合`,
+                    start: { ...prevPoint },
+                    end: { ...A },
+                    distance: startDistance.toFixed(2),
+                    angle: finalAngle.toFixed(2),
+                    diameter: finalDiameter
+                });
+                
+            } else {
+                const startDistance = calculateDistance(O, A);
+                
                 points.forEach((point, index) => {
                     const angle = calculateSectorAngle(O, prevPoint, point);
-                    const distance = calculateDistance(O, point); // 圆心到当前点的距离
+                    const distance = calculateDistance(O, point);
                     const diameter = calculateDiameter(distance);
                     
-                    results.push({
+                    calculatedResults.push({
                         name: `扇形 ${index + 1}`,
                         start: { ...prevPoint },
                         end: { ...point },
@@ -1225,11 +3749,10 @@
                     prevPoint = point;
                 });
                 
-                // 闭合路径（从最后一个点回到起点）
                 const finalAngle = calculateSectorAngle(O, prevPoint, A);
                 const finalDiameter = calculateDiameter(startDistance);
                 
-                results.push({
+                calculatedResults.push({
                     name: `扇形 ${points.length + 1}`,
                     start: { ...prevPoint },
                     end: { ...A },
@@ -1239,36 +3762,35 @@
                 });
             }
             
-            updateResultsTable(results);
-            if (canvasVisible) drawDiagram(results);
+            updateResultsTable(calculatedResults);
+            if (canvasVisible) drawDiagram(calculatedResults);
+            updateProgramDisplay();
+            calculateAdjustedProgram();
+            
+            // 移动端震动反馈
+            if (isMobile && navigator.vibrate) {
+                navigator.vibrate(30);
+            }
         }
         
-        // 计算扇形角度
         function calculateSectorAngle(O, A, B) {
-            // 向量OA
             const oaX = A.x - O.x;
             const oaY = A.y - O.y;
             
-            // 向量OB
             const obX = B.x - O.x;
             const obY = B.y - O.y;
             
-            // 计算点积
             const dotProduct = oaX * obX + oaY * obY;
             
-            // 计算模长
             const magnitudeOA = Math.sqrt(oaX * oaX + oaY * oaY);
             const magnitudeOB = Math.sqrt(obX * obX + obY * obY);
             
-            // 计算夹角（弧度）
             const cosTheta = dotProduct / (magnitudeOA * magnitudeOB);
             const angleRad = Math.acos(Math.min(Math.max(cosTheta, -1), 1));
             
-            // 转为角度
             return angleRad * 180 / Math.PI;
         }
         
-        // 更新结果表格
         function updateResultsTable(results) {
             const tbody = document.querySelector('#result-table tbody');
             tbody.innerHTML = '';
@@ -1286,8 +3808,7 @@
                 tbody.appendChild(tr);
             });
         }
-        
-        // 绘制图形（无填充扇形）
+
         function drawDiagram(results) {
             clearCanvas();
             
@@ -1301,7 +3822,6 @@
             
             drawAxes(scale, offsetX, offsetY);
             
-            // 绘制扇形区域（无填充，只有边框）
             results.forEach((result, index) => {
                 const start = result.start;
                 const end = result.end;
@@ -1310,31 +3830,32 @@
                 const startCanvas = toCanvas(start.x, start.y);
                 const endCanvas = toCanvas(end.x, end.y);
                 
-                // 绘制扇形边框
                 ctx.beginPath();
                 ctx.moveTo(oCanvas.x, oCanvas.y);
                 ctx.lineTo(startCanvas.x, startCanvas.y);
                 
-                // 计算半径
                 const radius = Math.sqrt((startCanvas.x-oCanvas.x)**2 + (startCanvas.y-oCanvas.y)**2);
                 
-                // 计算起始角度和结束角度
                 const startAngle = Math.atan2(startCanvas.y-oCanvas.y, startCanvas.x-oCanvas.x);
                 const endAngle = Math.atan2(endCanvas.y-oCanvas.y, endCanvas.x-oCanvas.x);
                 
-                // 绘制圆弧
                 ctx.arc(oCanvas.x, oCanvas.y, radius, startAngle, endAngle);
                 ctx.lineTo(oCanvas.x, oCanvas.y);
                 
-                // 只绘制边框，不填充
-                ctx.strokeStyle = `hsl(${index * 60 % 360}, 80%, 50%)`;
+                // 使用固定的颜色，不依赖CSS变量
+                const colors = ['#4285f4', '#0f9d58', '#ea4335', '#ff9800', '#9c27b0'];
+                ctx.strokeStyle = colors[index % colors.length];
                 ctx.lineWidth = 2;
                 ctx.stroke();
                 
-                // 标注角度
                 const midAngle = (startAngle + endAngle) / 2;
                 const labelRadius = radius * 0.5;
-                ctx.fillStyle = '#000';
+                
+                // 获取当前主题的文字颜色
+                const currentTheme = document.body.getAttribute('data-theme');
+                const textColor = currentTheme === 'dark' ? '#e0e0e0' : '#333333';
+                
+                ctx.fillStyle = textColor;
                 ctx.font = '12px Arial';
                 ctx.fillText(
                     `${result.angle}°`,
@@ -1343,31 +3864,40 @@
                 );
             });
             
-            // 绘制所有点
             function drawPoint(x, y, label, color, size = 4) {
                 const p = toCanvas(x, y);
                 ctx.beginPath();
                 ctx.arc(p.x, p.y, size, 0, Math.PI*2);
                 ctx.fillStyle = color;
                 ctx.fill();
-                ctx.fillStyle = '#000';
+                
+                // 获取当前主题的文字颜色
+                const currentTheme = document.body.getAttribute('data-theme');
+                const textColor = currentTheme === 'dark' ? '#e0e0e0' : '#333333';
+                
+                ctx.fillStyle = textColor;
                 ctx.font = '10px Arial';
                 ctx.fillText(label, p.x + 8, p.y - 8);
             }
             
-            drawPoint(O.x, O.y, "圆心 (0,0)", '#0f9d58', 5);
-            drawPoint(A.x, A.y, `起点 (${A.x},${A.y})`, '#ea4335', 5);
+            // 使用当前主题的颜色
+            const currentTheme = document.body.getAttribute('data-theme');
+            const centerColor = currentTheme === 'dark' ? '#34a853' : '#0f9d58';
+            const startColor = '#ea4335'; // 红色保持不变
+            const pointColor = currentTheme === 'dark' ? '#5c9dff' : '#4285f4';
+            
+            drawPoint(O.x, O.y, "圆心 (0,0)", centerColor, 5);
+            drawPoint(A.x, A.y, `起点 (${A.x},${A.y})`, startColor, 5);
             
             points.forEach((point, index) => {
                 let pointLabel = `点${index+1}`;
                 if (isCombinationMode) {
-                    // 组合模式下，计算当前点属于哪个模板
                     let templateIndex = 0;
                     let pointCount = 0;
                     
                     for (let i = 0; i < selectedTemplates.length; i++) {
                         const templateName = selectedTemplates[i];
-                        const templatePoints = templates[templateName].points;
+                        const templatePoints = templates[templateName]?.points || [];
                         
                         if (index < pointCount + templatePoints.length) {
                             templateIndex = i;
@@ -1378,14 +3908,19 @@
                     
                     pointLabel = `点${templateIndex + 1}-${index - pointCount + 1}`;
                 }
-                drawPoint(point.x, point.y, `${pointLabel} (${point.x},${point.y})`, '#4285f4', 4);
+                
+                drawPoint(point.x, point.y, `${pointLabel} (${point.x},${point.y})`, pointColor, 4);
             });
         }
-        
-        // 绘制坐标轴
+
         function drawAxes(scale, offsetX, offsetY) {
             ctx.beginPath();
-            ctx.strokeStyle = '#ddd';
+            
+            // 获取当前主题的轴线颜色
+            const currentTheme = document.body.getAttribute('data-theme');
+            const axisColor = currentTheme === 'dark' ? '#666' : '#ddd';
+            
+            ctx.strokeStyle = axisColor;
             ctx.lineWidth = 1;
             
             const xAxisY = canvas.height - (0 * scale + offsetY);
@@ -1397,9 +3932,7 @@
             ctx.lineTo(yAxisX, canvas.height);
             
             ctx.stroke();
-        }
-        
-        // 计算视图参数
+        }        
         function calculateViewport(points) {
             let minX = Infinity, maxX = -Infinity;
             let minY = Infinity, maxY = -Infinity;
@@ -1429,175 +3962,100 @@
             return { scale, offsetX, offsetY };
         }
         
-        // 导出功能
-        function exportAsImage() {
-            showLoading(true);
-            setTimeout(() => {
-                try {
-                    // 创建新canvas只包含表格
-                    const exportCanvas = document.createElement('canvas');
-                    const exportCtx = exportCanvas.getContext('2d');
-                    const table = document.getElementById('result-table');
-                    
-                    exportCanvas.width = Math.max(800, table.offsetWidth);
-                    exportCanvas.height = table.offsetHeight + 100;
-                    
-                    // 白色背景
-                    exportCtx.fillStyle = 'white';
-                    exportCtx.fillRect(0, 0, exportCanvas.width, exportCanvas.height);
-                    
-                    // 添加标题
-                    exportCtx.fillStyle = 'black';
-                    exportCtx.font = 'bold 20px Arial';
-                    exportCtx.fillText('五孔计算结果', 20, 40);
-                    
-                    // 绘制表格
-                    exportCtx.font = '12px Arial';
-                    let yPos = 80;
-                    
-                    // 表头
-                    const headers = Array.from(table.querySelectorAll('th')).map(th => th.textContent);
-                    exportCtx.fillStyle = '#f2f2f2';
-                    exportCtx.fillRect(20, yPos, exportCanvas.width - 40, 30);
-                    exportCtx.fillStyle = 'black';
-                    headers.forEach((header, i) => {
-                        exportCtx.fillText(header, 25 + i * 130, yPos + 20);
-                    });
-                    yPos += 30;
-                    
-                    // 表格内容
-                    const rows = table.querySelectorAll('tbody tr');
-                    rows.forEach((row, rowIndex) => {
-                        const cells = row.querySelectorAll('td');
-                        cells.forEach((cell, cellIndex) => {
-                            exportCtx.fillText(cell.textContent, 25 + cellIndex * 130, yPos + 20);
-                        });
-                        yPos += 30;
-                        
-                        // 交替行背景色
-                        if (rowIndex % 2 === 0) {
-                            exportCtx.fillStyle = 'rgba(0,0,0,0.05)';
-                            exportCtx.fillRect(20, yPos - 25, exportCanvas.width - 40, 30);
-                            exportCtx.fillStyle = 'black';
-                        }
-                    });
-                    
-                    // 转换为图片并下载
-                    const dataURL = exportCanvas.toDataURL('image/png');
-                    const link = document.createElement('a');
-                    link.download = '五孔计算结果.png';
-                    link.href = dataURL;
-                    link.click();
-                } catch (error) {
-                    alert('导出图片失败：' + error.message);
-                } finally {
-                    showLoading(false);
-                }
-            }, 100);
-        }
-        
-        function exportAsCSV() {
-            showLoading(true);
-            setTimeout(() => {
-                try {
-                    let csvContent = "扇形,起点坐标,终点坐标,圆心到点距离,角度(°),直径\n";
-                    
-                    const rows = document.querySelectorAll('#result-table tbody tr');
-                    rows.forEach(row => {
-                        const cells = row.querySelectorAll('td');
-                        const rowData = Array.from(cells).map(cell => cell.textContent.replace(/,/g, ';'));
-                        csvContent += rowData.join(',') + '\n';
-                    });
-                    
-                    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-                    const link = document.createElement('a');
-                    link.download = '五孔计算结果.csv';
-                    link.href = URL.createObjectURL(blob);
-                    link.click();
-                } catch (error) {
-                    alert('导出CSV失败：' + error.message);
-                } finally {
-                    showLoading(false);
-                }
-            }, 100);
-        }
-        
-        function exportAsHTML() {
-            showLoading(true);
-            setTimeout(() => {
-                try {
-                    const table = document.getElementById('result-table').outerHTML;
-                    
-                    const htmlContent = `
-                        <!DOCTYPE html>
-                        <html>
-                        <head>
-                            <meta charset="UTF-8">
-                            <title>五孔计算结果</title>
-                            <style>
-                                body { font-family: Arial; margin: 20px; }
-                                table { border-collapse: collapse; width: 100%; margin-bottom: 20px; }
-                                th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-                                th { background-color: #f2f2f2; }
-                                h1 { color: #4285f4; }
-                            </style>
-                        </head>
-                        <body>
-                            <h1>五孔计算结果</h1>
-                            ${table}
-                            <p>导出时间：${new Date().toLocaleString('zh-CN')}</p>
-                        </body>
-                        </html>
-                    `;
-                    
-                    const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8;' });
-                    const link = document.createElement('a');
-                    link.download = '五孔计算结果.html';
-                    link.href = URL.createObjectURL(blob);
-                    link.click();
-                } catch (error) {
-                    alert('导出HTML失败：' + error.message);
-                } finally {
-                    showLoading(false);
-                }
-            }, 100);
-        }
-        
-        // 显示/隐藏加载动画
+        // ========== 工具函数 ==========
         function showLoading(show) {
             document.getElementById('loading').classList.toggle('active', show);
         }
         
-        // 初始化
-        window.onload = function() {
+        // ========== 初始化 ==========
+        window.onload = async function() {
+            // 初始化画布
             initCanvas();
             
-            // 加载默认模板
-            loadTemplate('主轴33', true);
+            // 初始化悬浮球
+            const toggle = new EdgeHideToggle({
+                ballSize: isMobile ? 50 : 60,
+                hideThreshold: 30,
+                hideDelay: 2000,
+                longPressDelay: 300,
+                clickMaxMove: isMobile ? 10 : 5,
+                deceleration: 0.95,
+                minVelocity: 0.5,
+                enableInertia: true,
+                enableEdgeHide: true,
+                enableVibrate: isMobile
+            });
             
-            // 检查是否已安装PWA
-            if (isAppInstalled()) {
-                console.log('应用已安装到桌面');
+            // 移动端提示
+            if (isMobile) {
+                setTimeout(() => {
+                    const hint = document.getElementById('touchHint');
+                    if (hint) {
+                        hint.style.display = 'block';
+                        setTimeout(() => {
+                            hint.style.display = 'none';
+                        }, 5000);
+                    }
+                }, 1000);
             }
             
-            // 5秒后检查是否显示安装提示
-            setTimeout(() => {
-                showInstallPrompt();
-            }, 5000);
+            // 尝试从本地存储加载模板
+            if (!loadTemplatesFromLocalStorage()) {
+                // 从GitHub加载模板
+                await loadTemplateFromGitHub();
+            }
+            
+            // 绑定事件
+            document.getElementById('programName').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    exportProgram();
+                }
+            });
+            
+            ['xAdjustment', 'cAdjustment'].forEach(id => {
+                const element = document.getElementById(id);
+                if (element) {
+                    element.addEventListener('input', function() {
+                        calculateAdjustedValues();
+                        calculateAdjustedProgram();
+                    });
+                }
+            });
+            
+            // 添加ESC键关闭模板库
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    closeTemplatePanel();
+                    closeProgramNameModal();
+                }
+            });
+            
+            // 默认加载主轴33模板
+            if (templates['主轴33']) {
+                loadTemplate('主轴33', true);
+            }
+            
+            // 移动端优化：防止键盘弹出时页面滚动
+            const inputs = document.querySelectorAll('input, select, textarea');
+            inputs.forEach(input => {
+                input.addEventListener('focus', function() {
+                    setTimeout(() => {
+                        this.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }, 300);
+                });
+            });
+            
+            // 修复移动端按钮点击
+            if (isMobile) {
+                document.querySelectorAll('button').forEach(button => {
+                    button.addEventListener('touchstart', function(e) {
+                        e.preventDefault();
+                        this.click();
+                    });
+                });
+            }
         };
     </script>
-    
-    <!-- GitHub仓库链接 -->
-    <footer>
-        <p>
-            <a href="https://github.com/Xiaowuyu273637/Five-hole-calculator" 
-               target="_blank">
-                🌟 GitHub仓库: https://github.com/Xiaowuyu273637/Five-hole-calculator
-            </a>
-        </p>
-        <p class="footer-text">
-            五孔计算器 - 专业的五孔计算工具
-        </p>
-    </footer>
 </body>
 </html>
+[file content end]
