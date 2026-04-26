@@ -1219,7 +1219,7 @@
                     <button onclick="loadTemplateFileFromInput()" class="btn-green" style="margin-top: 10px; width: 100%;">加载模板文件</button>
                 </div>
                 <div style="font-size: 0.8em; color: var(--text-secondary); padding: 5px;">
-                    请选择"模版点位.txt"文件
+                    请选择"Template Point.txt"文件
                 </div>
             </div>
             
@@ -1340,8 +1340,8 @@
                 <p style="margin-left: 15px;">• 当起点Y为负数时，X值为正数</p>
                 <p style="margin-left: 15px;">• 当起点Y为正数时，X值为负数</p>
                 <p>2. <strong>C值计算</strong>：累积角度（从0°开始累加每个扇形角度）</p>
-                <p style="margin-left: 15px;">• 附加模板中，如果两点过近，角度会用负数反向递增</p>
-                <p style="margin-left: 15px;">• 多模板组合时，点编号会从模板编号重新递增</p>
+                <p style="margin-left: 15px;">• 顺时针方向：C值为负数</p>
+                <p style="margin-left: 15px;">• 逆时针方向：C值为正数</p>
                 <p>3. <strong>程序格式</strong>：</p>
                 <p style="margin-left: 15px;">• <strong>格式1</strong>：完整的单程序，包含完整的加工流程</p>
                 <p style="margin-left: 15px;">• <strong>格式2</strong>：双程序格式，$1包含完整程序，$2为空</p>
@@ -1497,7 +1497,7 @@
                 <strong>🚀 共同开发</strong>
             </p>
             <p class="footer-text">
-                五孔计算器 - 递增计算版 - 专业的五孔计算工具 | v2.3
+                五孔计算器 - 递增计算版 - 专业的五孔计算工具 | v2.4
             </p>
             <p style="margin-top: 10px;">
                 <a href="https://www.bilibili.com/video/BV1PoBQBSEaX/" target="_blank">
@@ -1543,15 +1543,8 @@
         // 存储搜索关键词
         let searchKeywords = {};
         
-        // 优化GitHub国内连接
-        const GITHUB_URLS = [
-            'https://raw.githubusercontent.com/Xiaowuyu273637/Five-hole-calculator/main/%E6%A8%A1%E7%89%88%E7%82%B9%E4%BD%8D.txt',
-            'https://cdn.jsdelivr.net/gh/Xiaowuyu273637/Five-hole-calculator@main/%E6%A8%A1%E7%89%88%E7%82%B9%E4%BD%8D.txt',
-            'https://raw.githubusercontent.com/Xiaowuyu273637/Five-hole-calculator/master/%E6%A8%A1%E7%89%88%E7%82%B9%E4%BD%8D.txt'
-        ];
-        
-        // 备用模板内容（内置）
-        const FALLBACK_TEMPLATE_CONTENT = `主轴24模版原点：X0,Y-25.5，示例点：24,-8.7 16.6,19.3 4,19.3 -18.3,17.8 -24,-8.7 -24,-8.7
+        // 内置模板
+        const BUILTIN_TEMPLATE_CONTENT = `主轴24模版原点：X0,Y-25.5，示例点：24,-8.7 16.6,19.3 4,19.3 -18.3,17.8 -24,-8.7 -24,-8.7
 120410定位孔：-35,0
 
 下轴24模版原点：X0,Y-25.5，示例点：24,-8.7 18.7,17.8 -16.6,19.3 -24,-8.7
@@ -1571,7 +1564,7 @@
 115811定位孔：-37,0
 243810定位孔：0,-38
 
-下轴26.3模版原点：X0,Y-28.0，示例点：26.3,-9.6 20.1,19.4 -4,18.6 -18,21.4 -26.3,9.6
+下轴26.3模版原点：X0,Y-28.0，示例点：26.3,-9.6 20.1,19.4 -4,18.6 -18,21.4 -26.3,-9.6
 111810排气孔：18.6,-18.7 -15.3,-21.2 
 111810沉孔：23.5,8.6 -20.4,-14.4
 226110定位孔：20.6,-19 3.8,19.5 -28,1.3
@@ -1654,7 +1647,7 @@
 631210排气孔：22.5,-30.6 -35.5,13.5 -22.5,-30.6
 631210定位孔：4.8,26.3 -33,-43
 
-主轴38.1模版原点：X0,Y-40，示例点：38.1,-12.2 25.1,31.2 5.4,28 -28.3,28.3 -22.5,-30.6
+主轴38.1模版原点：X0,Y-40，示例点：38.1,-12.2 25.1,31.2 5.4,28 -28.3,28.3 -38.1,-12.2
 712810排气孔：11.5,-36.2 22.5,-30.6 -38,6.5 -22.5,-30.6
 712810定位孔：-12,-34 -33.3,-47.5
 
@@ -1682,20 +1675,17 @@
             if (isMobile) {
                 const hint = document.getElementById('touchHint');
                 if (hint) {
-                    // 显示提示
                     hint.classList.remove('hide');
                     hint.classList.add('show');
                     
-                    // 1分钟后淡出消失
                     setTimeout(() => {
                         hint.classList.remove('show');
                         hint.classList.add('hide');
                         
-                        // 完全隐藏
                         setTimeout(() => {
                             hint.style.display = 'none';
-                        }, 500); // 等待淡出动画完成
-                    }, 60000); // 1分钟 = 60000毫秒
+                        }, 500);
+                    }, 60000);
                 }
             }
         }
@@ -1867,12 +1857,6 @@
                     templates = parseTemplateFile(content);
                     updateTemplateUI();
                     alert(`成功加载 ${Object.keys(templates).length} 个模板`);
-                    
-                    try {
-                        localStorage.setItem('fiveHoleTemplates', JSON.stringify(templates));
-                    } catch (e) {
-                        console.log('本地存储不可用');
-                    }
                 } catch (error) {
                     console.error('解析模板文件失败:', error);
                     alert('解析模板文件失败，请检查文件格式');
@@ -1884,73 +1868,6 @@
             };
             
             reader.readAsText(file);
-        }
-        
-        function loadTemplatesFromLocalStorage() {
-            try {
-                const saved = localStorage.getItem('fiveHoleTemplates');
-                if (saved) {
-                    templates = JSON.parse(saved);
-                    updateTemplateUI();
-                    return true;
-                }
-            } catch (e) {
-                console.error('从本地存储加载模板失败:', e);
-            }
-            return false;
-        }
-        
-        async function loadTemplateFromGitHub() {
-            showLoading(true);
-            
-            try {
-                let content = null;
-                
-                for (const url of GITHUB_URLS) {
-                    try {
-                        const response = await fetch(url, {
-                            cache: 'no-cache',
-                            mode: 'cors'
-                        });
-                        
-                        if (response.ok) {
-                            content = await response.text();
-                            break;
-                        }
-                    } catch (error) {
-                        console.log(`从 ${url} 加载失败:`, error.message);
-                    }
-                }
-                
-                if (!content) {
-                    content = FALLBACK_TEMPLATE_CONTENT;
-                }
-                
-                templates = parseTemplateFile(content);
-                updateTemplateUI();
-                
-                try {
-                    localStorage.setItem('fiveHoleTemplates', JSON.stringify(templates));
-                } catch (e) {
-                    console.log('本地存储不可用');
-                }
-                
-                showLoading(false);
-                return true;
-            } catch (error) {
-                console.error('加载模板文件失败:', error);
-                
-                try {
-                    templates = parseTemplateFile(FALLBACK_TEMPLATE_CONTENT);
-                    updateTemplateUI();
-                } catch (fallbackError) {
-                    console.error('备用模板也加载失败:', fallbackError);
-                    alert('模板加载失败，请检查网络连接或手动上传模板文件');
-                }
-                
-                showLoading(false);
-                return false;
-            }
         }
         
         function sortTemplateNames(templateNames, category) {
@@ -2604,9 +2521,6 @@
             
             let program = "";
             
-            const currentTemplateName = selectedTemplates.length > 0 ? selectedTemplates[0] : '';
-            const isAdditional = isAdditionalTemplate(currentTemplateName) || additionalPoints.length > 0;
-            
             const startDistance = calculateDistance(O, A);
             const startDiameter = (startDistance * 2).toFixed(2);
             
@@ -2620,72 +2534,12 @@
                 prog += `Z2.0\n`;
                 prog += `G83Z-15.3R2.0F300\n`;
                 
-                if (isCombinationMode) {
-                    let pointIndex = 0;
-                    
-                    for (let templateIndex = 0; templateIndex < selectedTemplates.length; templateIndex++) {
-                        const templateName = selectedTemplates[templateIndex];
-                        const template = templates[templateName];
-                        if (!template) continue;
-                        
-                        const templatePoints = template.points;
-                        const isTemplateAdditional = isAdditionalTemplate(templateName);
-                        
-                        if (isTemplateAdditional) {
-                            for (let i = 0; i < templatePoints.length; i++) {
-                                const point = templatePoints[i];
-                                const distance = calculateDistance(O, point);
-                                const diameter = (distance * 2).toFixed(2);
-                                
-                                let angle;
-                                if (i === 0) {
-                                    angle = calculateSectorAngle(O, A, point);
-                                } else {
-                                    const prevTemplatePoint = templatePoints[i-1];
-                                    angle = calculateSectorAngle(O, prevTemplatePoint, point);
-                                }
-                                
-                                prog += `X${(xSign * parseFloat(diameter)).toFixed(2)}C${angle.toFixed(2)}\n`;
-                            }
-                        } else {
-                            let cumulativeAngle = 0;
-                            for (let i = 0; i < templatePoints.length; i++) {
-                                const point = templatePoints[i];
-                                const distance = calculateDistance(O, point);
-                                const diameter = (distance * 2).toFixed(2);
-                                
-                                const resultIndex = pointIndex + i;
-                                if (resultIndex < calculatedResults.length) {
-                                    cumulativeAngle += parseFloat(calculatedResults[resultIndex].angle);
-                                }
-                                
-                                prog += `X${(xSign * parseFloat(diameter)).toFixed(2)}C${cumulativeAngle.toFixed(2)}\n`;
-                            }
-                        }
-                        
-                        pointIndex += templatePoints.length;
-                    }
-                } else if (isAdditional || additionalPoints.length > 0) {
-                    for (let i = 0; i < points.length; i++) {
-                        const point = points[i];
-                        const distance = calculateDistance(O, point);
-                        const diameter = (distance * 2).toFixed(2);
-                        
-                        let angle;
-                        if (i === 0) {
-                            angle = calculateSectorAngle(O, A, point);
-                        } else {
-                            const prevPoint = points[i-1];
-                            angle = calculateSectorAngle(O, prevPoint, point);
-                            
-                            if (Math.abs(angle) < 5) {
-                                angle = -angle;
-                            }
-                        }
-                        
-                        prog += `X${(xSign * parseFloat(diameter)).toFixed(2)}C${angle.toFixed(2)}\n`;
-                    }
-                    
+                let cumulativeAngle = 0;
+                let prevPoint = A;
+                let allPoints = [...points];
+                
+                // 如果有附加点，按顺序插入到allPoints中
+                if (additionalPoints.length > 0) {
                     const groupedAdditionalPoints = {};
                     additionalPoints.forEach(point => {
                         if (!groupedAdditionalPoints[point.index]) {
@@ -2694,46 +2548,44 @@
                         groupedAdditionalPoints[point.index].push(point);
                     });
                     
+                    // 将附加点按index分组插入
+                    let newAllPoints = [];
+                    let mainPointIndex = 0;
+                    
                     Object.keys(groupedAdditionalPoints).sort((a, b) => a - b).forEach(index => {
-                        const pointsInGroup = groupedAdditionalPoints[index];
-                        
-                        for (let i = 0; i < pointsInGroup.length; i++) {
-                            const point = pointsInGroup[i];
-                            const distance = calculateDistance(O, point);
-                            const diameter = (distance * 2).toFixed(2);
-                            
-                            let angle;
-                            if (i === 0) {
-                                if (points.length > 0 && index == Math.min(...Object.keys(groupedAdditionalPoints).map(k => parseInt(k)))) {
-                                    angle = calculateSectorAngle(O, points[points.length - 1], point);
-                                } else {
-                                    angle = calculateSectorAngle(O, A, point);
-                                }
-                            } else {
-                                const prevPoint = pointsInGroup[i-1];
-                                angle = calculateSectorAngle(O, prevPoint, point);
-                                
-                                if (Math.abs(angle) < 5) {
-                                    angle = -angle;
-                                }
-                            }
-                            
-                            prog += `X${(xSign * parseFloat(diameter)).toFixed(2)}C${angle.toFixed(2)}\n`;
+                        const insertIndex = parseInt(index);
+                        // 添加主点到插入位置
+                        while (mainPointIndex < insertIndex && mainPointIndex < points.length) {
+                            newAllPoints.push(points[mainPointIndex]);
+                            mainPointIndex++;
                         }
+                        // 添加附加点组
+                        groupedAdditionalPoints[index].forEach(point => {
+                            newAllPoints.push(point);
+                        });
                     });
-                } else {
-                    let cumulativeAngle = 0;
-                    for (let i = 0; i < points.length; i++) {
-                        const point = points[i];
-                        const distance = calculateDistance(O, point);
-                        const diameter = calculateDiameter(distance);
-                        
-                        if (i < calculatedResults.length) {
-                            cumulativeAngle += parseFloat(calculatedResults[i].angle);
-                        }
-                        
-                        prog += `X${(xSign * parseFloat(diameter)).toFixed(2)}C${cumulativeAngle.toFixed(2)}\n`;
+                    
+                    // 添加剩余的主点
+                    while (mainPointIndex < points.length) {
+                        newAllPoints.push(points[mainPointIndex]);
+                        mainPointIndex++;
                     }
+                    
+                    allPoints = newAllPoints;
+                }
+                
+                // 计算所有点的程序
+                for (let i = 0; i < allPoints.length; i++) {
+                    const point = allPoints[i];
+                    const distance = calculateDistance(O, point);
+                    const diameter = (distance * 2).toFixed(2);
+                    
+                    const angle = calculateSectorAngle(O, prevPoint, point);
+                    
+                    cumulativeAngle += angle;
+                    prog += `X${(xSign * parseFloat(diameter)).toFixed(2)}C${cumulativeAngle.toFixed(2)}\n`;
+                    
+                    prevPoint = point;
                 }
                 
                 prog += `G0Z50.0\nM30\n`;
@@ -2805,12 +2657,9 @@
                     document.getElementById('startX').value = A.x;
                     document.getElementById('startY').value = A.y;
                     product = Math.abs(A.y) * 2;
-                    
-                    points = [...template.points];
-                } else {
-                    points = [...template.points];
                 }
                 
+                points = [...template.points];
                 additionalPoints = [];
                 
                 updatePointsDisplay();
@@ -3167,6 +3016,34 @@
             return roundedDiameter.toFixed(2);
         }
         
+        function calculateSectorAngle(O, A, B) {
+            const oaX = A.x - O.x;
+            const oaY = A.y - O.y;
+            
+            const obX = B.x - O.x;
+            const obY = B.y - O.y;
+            
+            const dotProduct = oaX * obX + oaY * obY;
+            const crossProduct = oaX * obY - oaY * obX;
+            
+            const magnitudeOA = Math.sqrt(oaX * oaX + oaY * oaY);
+            const magnitudeOB = Math.sqrt(obX * obX + obY * obY);
+            
+            if (magnitudeOA === 0 || magnitudeOB === 0) {
+                return 0;
+            }
+            
+            const cosTheta = Math.max(-1, Math.min(1, dotProduct / (magnitudeOA * magnitudeOB)));
+            const angleRad = Math.acos(cosTheta);
+            let angleDeg = angleRad * 180 / Math.PI;
+            
+            if (crossProduct < 0) {
+                angleDeg = -angleDeg;
+            }
+            
+            return angleDeg;
+        }
+        
         function calculateAll() {
             if (points.length === 0 && additionalPoints.length === 0) {
                 clearCanvas();
@@ -3177,155 +3054,56 @@
             
             calculatedResults = [];
             let prevPoint = A;
+            let allPoints = [...points];
             
-            if (isCombinationMode) {
-                let pointCount = 0;
-                
-                for (let templateIndex = 0; templateIndex < selectedTemplates.length; templateIndex++) {
-                    const templateName = selectedTemplates[templateIndex];
-                    const template = templates[templateName];
-                    if (!template) continue;
-                    
-                    const templatePoints = template.points;
-                    const isTemplateAdditional = isAdditionalTemplate(templateName);
-                    
-                    if (isTemplateAdditional) {
-                        for (let i = 0; i < templatePoints.length; i++) {
-                            const point = templatePoints[i];
-                            const distance = calculateDistance(O, point);
-                            const diameter = calculateDiameter(distance);
-                            
-                            let angle;
-                            if (i === 0) {
-                                angle = calculateSectorAngle(O, A, point);
-                            } else {
-                                const prevTemplatePoint = templatePoints[i-1];
-                                angle = calculateSectorAngle(O, prevTemplatePoint, point);
-                            }
-                            
-                            calculatedResults.push({
-                                name: `点 ${templateIndex + 1}-${i + 1}`,
-                                start: { ...prevPoint },
-                                end: { ...point },
-                                distance: distance.toFixed(2),
-                                angle: angle.toFixed(2),
-                                diameter: diameter
-                            });
-                            
-                            prevPoint = point;
-                        }
-                    } else {
-                        for (let i = 0; i < templatePoints.length; i++) {
-                            const point = templatePoints[i];
-                            const angle = calculateSectorAngle(O, prevPoint, point);
-                            const distance = calculateDistance(O, point);
-                            const diameter = calculateDiameter(distance);
-                            
-                            calculatedResults.push({
-                                name: `扇形 ${templateIndex + 1}-${i + 1}`,
-                                start: { ...prevPoint },
-                                end: { ...point },
-                                distance: distance.toFixed(2),
-                                angle: angle.toFixed(2),
-                                diameter: diameter
-                            });
-                            
-                            prevPoint = point;
-                        }
+            // 按顺序处理所有点（包括附加点）
+            if (additionalPoints.length > 0) {
+                const groupedAdditionalPoints = {};
+                additionalPoints.forEach(point => {
+                    if (!groupedAdditionalPoints[point.index]) {
+                        groupedAdditionalPoints[point.index] = [];
                     }
-                    
-                    pointCount += templatePoints.length;
+                    groupedAdditionalPoints[point.index].push(point);
+                });
+                
+                let newAllPoints = [];
+                let mainPointIndex = 0;
+                
+                Object.keys(groupedAdditionalPoints).sort((a, b) => a - b).forEach(index => {
+                    const insertIndex = parseInt(index);
+                    while (mainPointIndex < insertIndex && mainPointIndex < points.length) {
+                        newAllPoints.push(points[mainPointIndex]);
+                        mainPointIndex++;
+                    }
+                    groupedAdditionalPoints[index].forEach(point => {
+                        newAllPoints.push(point);
+                    });
+                });
+                
+                while (mainPointIndex < points.length) {
+                    newAllPoints.push(points[mainPointIndex]);
+                    mainPointIndex++;
                 }
                 
-                const finalAngle = calculateSectorAngle(O, prevPoint, A);
-                const startDistance = calculateDistance(O, A);
-                const finalDiameter = calculateDiameter(startDistance);
-                
-                calculatedResults.push({
-                    name: `闭合`,
-                    start: { ...prevPoint },
-                    end: { ...A },
-                    distance: startDistance.toFixed(2),
-                    angle: finalAngle.toFixed(2),
-                    diameter: finalDiameter
-                });
-                
-            } else {
-                const startDistance = calculateDistance(O, A);
-                
-                points.forEach((point, index) => {
-                    const angle = calculateSectorAngle(O, prevPoint, point);
-                    const distance = calculateDistance(O, point);
-                    const diameter = calculateDiameter(distance);
-                    
-                    calculatedResults.push({
-                        name: `扇形 ${index + 1}`,
-                        start: { ...prevPoint },
-                        end: { ...point },
-                        distance: distance.toFixed(2),
-                        angle: angle.toFixed(2),
-                        diameter: diameter
-                    });
-                    
-                    prevPoint = point;
-                });
-                
-                if (additionalPoints.length > 0) {
-                    const groupedAdditionalPoints = {};
-                    additionalPoints.forEach(point => {
-                        if (!groupedAdditionalPoints[point.index]) {
-                            groupedAdditionalPoints[point.index] = [];
-                        }
-                        groupedAdditionalPoints[point.index].push(point);
-                    });
-                    
-                    Object.keys(groupedAdditionalPoints).sort((a, b) => a - b).forEach(index => {
-                        const pointsInGroup = groupedAdditionalPoints[index];
-                        
-                        for (let i = 0; i < pointsInGroup.length; i++) {
-                            const point = pointsInGroup[i];
-                            let angle;
-                            
-                            if (i === 0) {
-                                if (points.length > 0 && index == Math.min(...Object.keys(groupedAdditionalPoints).map(k => parseInt(k)))) {
-                                    angle = calculateSectorAngle(O, prevPoint, point);
-                                } else {
-                                    angle = calculateSectorAngle(O, A, point);
-                                }
-                            } else {
-                                const prevPointInGroup = pointsInGroup[i-1];
-                                angle = calculateSectorAngle(O, prevPointInGroup, point);
-                            }
-                            
-                            const distance = calculateDistance(O, point);
-                            const diameter = calculateDiameter(distance);
-                            
-                            calculatedResults.push({
-                                name: `附加点 ${index}-${pointsInGroup[i].subIndex || (i + 1)}`,
-                                start: i === 0 ? { ...prevPoint } : { ...pointsInGroup[i-1] },
-                                end: { ...point },
-                                distance: distance.toFixed(2),
-                                angle: angle.toFixed(2),
-                                diameter: diameter
-                            });
-                            
-                            prevPoint = point;
-                        }
-                    });
-                }
-                
-                const finalAngle = calculateSectorAngle(O, prevPoint, A);
-                const finalDiameter = calculateDiameter(startDistance);
-                
-                calculatedResults.push({
-                    name: `闭合`,
-                    start: { ...prevPoint },
-                    end: { ...A },
-                    distance: startDistance.toFixed(2),
-                    angle: finalAngle.toFixed(2),
-                    diameter: finalDiameter
-                });
+                allPoints = newAllPoints;
             }
+            
+            allPoints.forEach((point, index) => {
+                const angle = calculateSectorAngle(O, prevPoint, point);
+                const distance = calculateDistance(O, point);
+                const diameter = calculateDiameter(distance);
+                
+                calculatedResults.push({
+                    name: `扇形 ${index + 1}`,
+                    start: { ...prevPoint },
+                    end: { ...point },
+                    distance: distance.toFixed(2),
+                    angle: angle.toFixed(2),
+                    diameter: diameter
+                });
+                
+                prevPoint = point;
+            });
             
             updateResultsTable(calculatedResults);
             if (canvasVisible) drawDiagram(calculatedResults);
@@ -3335,24 +3113,6 @@
             if (isMobile && navigator.vibrate) {
                 navigator.vibrate(30);
             }
-        }
-        
-        function calculateSectorAngle(O, A, B) {
-            const oaX = A.x - O.x;
-            const oaY = A.y - O.y;
-            
-            const obX = B.x - O.x;
-            const obY = B.y - O.y;
-            
-            const dotProduct = oaX * obX + oaY * obY;
-            
-            const magnitudeOA = Math.sqrt(oaX * oaX + oaY * oaY);
-            const magnitudeOB = Math.sqrt(obX * obX + obY * obY);
-            
-            const cosTheta = dotProduct / (magnitudeOA * magnitudeOB);
-            const angleRad = Math.acos(Math.min(Math.max(cosTheta, -1), 1));
-            
-            return angleRad * 180 / Math.PI;
         }
         
         function updateResultsTable(results) {
@@ -3414,7 +3174,6 @@
                 const midAngle = (startAngle + endAngle) / 2;
                 const labelRadius = radius * 0.5;
                 
-                // 使用CSS变量设置文字颜色
                 ctx.fillStyle = getComputedStyle(document.documentElement)
                     .getPropertyValue('--canvas-text-color').trim();
                 ctx.font = '12px Arial';
@@ -3432,7 +3191,6 @@
                 ctx.fillStyle = color;
                 ctx.fill();
                 
-                // 使用CSS变量设置文字颜色
                 ctx.fillStyle = getComputedStyle(document.documentElement)
                     .getPropertyValue('--canvas-text-color').trim();
                 ctx.font = '10px Arial';
@@ -3472,7 +3230,6 @@
         }
 
         function drawAxes(scale, offsetX, offsetY) {
-            // 使用CSS变量设置坐标轴颜色
             const axisColor = getComputedStyle(document.documentElement)
                 .getPropertyValue('--canvas-axis-color').trim();
             
@@ -3526,16 +3283,16 @@
         }
         
         // ========== 初始化 ==========
-        window.onload = async function() {
+        window.onload = function() {
             try {
                 initCanvas();
                 
-                // 显示移动端提示（1分钟后消失）
                 showTouchHint();
                 
-                if (!loadTemplatesFromLocalStorage()) {
-                    await loadTemplateFromGitHub();
-                }
+                // 直接使用内置模板，不从网络加载
+                templates = parseTemplateFile(BUILTIN_TEMPLATE_CONTENT);
+                updateTemplateUI();
+                console.log(`已加载 ${Object.keys(templates).length} 个内置模板`);
                 
                 document.getElementById('programName').addEventListener('keypress', function(e) {
                     if (e.key === 'Enter') {
@@ -3570,12 +3327,12 @@
                     }
                 });
                 
-                // 默认加载一个模板
+                // 默认加载主轴33模板
                 if (templates['主轴33']) {
                     loadTemplate('主轴33', true);
                 }
                 
-                console.log('五孔计算器初始化完成');
+                console.log('五孔计算器 v2.4 初始化完成 - 使用内置模板，已修复角度方向问题');
             } catch (error) {
                 console.error('初始化错误:', error);
                 alert('初始化失败，请刷新页面重试');
