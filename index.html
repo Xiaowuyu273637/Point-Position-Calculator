@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>五孔计算器 - 递增计算版</title>
+    <title>五孔计算器 - 递增计算版（拖拽排序）</title>
     
     <style>
         :root {
@@ -190,6 +190,7 @@
             -webkit-overflow-scrolling: touch;
         }
         
+        /* 原有 .point-item 样式保留（用于附加点） */
         .point-item {
             display: flex;
             flex-wrap: wrap;
@@ -216,6 +217,90 @@
             padding: 8px 12px;
             min-height: 40px;
         }
+        
+        /* 主点列表项 - 桌面端一行布局 */
+        .list-item {
+            display: flex;
+            flex-wrap: nowrap;
+            gap: 8px;
+            margin-bottom: 8px;
+            align-items: center;
+            padding: 8px;
+            background: var(--primary-light);
+            border-radius: 4px;
+            border: 1px solid var(--border-color);
+            transition: all 0.2s ease;
+            cursor: grab;  /* 整个框可拖拽 */
+            user-select: none;
+        }
+        .list-item:active {
+            cursor: grabbing;
+        }
+        .list-item.drag-over {
+            border: 2px dashed var(--primary-color);
+            background: rgba(66, 133, 244, 0.15);
+        }
+
+        /* 点号标签样式 - 普通文字，无高亮背景 */
+        .point-label {
+            font-weight: bold;
+            color: var(--text-color);
+            padding: 8px 4px;
+            text-align: center;
+            min-width: 50px;
+            flex-shrink: 0;
+        }
+
+        .list-item .coord-input {
+            flex: 1;
+            min-width: 80px;
+        }
+        .list-item .coord-input input {
+            width: 100%;
+            margin: 0;
+            pointer-events: auto;  /* 确保输入框可点击 */
+        }
+        .list-item .delete-btn {
+            flex-shrink: 0;
+            width: auto;
+            margin: 0;
+            pointer-events: auto;
+        }
+
+        /* 手机端窄屏时改为垂直布局 */
+        @media (max-width: 550px) {
+            .list-item {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 6px;
+            }
+            .point-label {
+                align-self: flex-start;
+                margin-bottom: 4px;
+            }
+            .list-item .coord-input {
+                width: 100%;
+            }
+            .list-item .delete-btn {
+                align-self: flex-end;
+                margin-top: 4px;
+            }
+        }
+
+        .drag-clone {
+            position: fixed;
+            z-index: 9999;
+            pointer-events: none;
+            opacity: 0.85;
+            background: var(--primary-color);
+            color: white;
+            padding: 10px 16px;
+            border-radius: 30px;
+            font-weight: bold;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            transform: translate(-50%, -50%);
+        }
+        /* ========== 拖拽排序样式结束 ========== */
         
         .export-buttons {
             display: flex;
@@ -1160,7 +1245,7 @@
 <body>
     <!-- 移动端提示 - 1分钟后自动消失 -->
     <div class="touch-hint" id="touchHint">
-        💡 提示：点击模板库按钮加载预设模板
+        💡 提示：点击模板库按钮加载预设模板，按住左侧序号可拖拽调整顺序
     </div>
     
     <div class="loading" id="loading">
@@ -1351,7 +1436,6 @@
                 暂无程序数据，请先加载模板或添加点。
             </div>
             <div class="export-buttons">
-                <button onclick="openVideoTutorial()" class="btn-teal">📹 视频教程</button>
                 <button onclick="openProgramNameModal()" class="btn-orange">导出程序</button>
             </div>
         </div>
@@ -1453,7 +1537,6 @@
             </div>
             
             <div class="export-buttons">
-                <button onclick="openVideoTutorial()" class="btn-teal">📹 视频教程</button>
                 <button onclick="exportAdjustedProgram()" class="btn-orange">导出调整后的程序</button>
             </div>
         </div>
@@ -1497,7 +1580,7 @@
                 <strong>🚀 共同开发</strong>
             </p>
             <p class="footer-text">
-                五孔计算器 - 递增计算版 - 专业的五孔计算工具 | v2.4
+                五孔计算器 - 递增计算版 - 专业的五孔计算工具 | v2.5 
             </p>
             <p style="margin-top: 10px;">
                 <a href="https://www.bilibili.com/video/BV1PoBQBSEaX/" target="_blank">
@@ -1506,6 +1589,9 @@
             </p>
         </div>
     </footer>
+
+    <!-- 拖拽排序克隆元素 -->
+    <div class="drag-clone" id="dragClone" style="display:none;"></div>
 
     <script>
         // 五孔计算器核心变量
@@ -1523,6 +1609,7 @@
         
         let calculatedResults = [];
         let templatePointGroups = [];
+        let isReversedFlag = false;  // 记录是否处于反转状态
         
         let xAdjustment = 0;
         let cAdjustment = 0;
@@ -1542,6 +1629,14 @@
         
         // 存储搜索关键词
         let searchKeywords = {};
+        
+        // ========== 新增：拖拽排序变量 ==========
+        let dragStartIndex = -1;
+        let dragOverIndex = -1;
+        let isDragging = false;
+        let dragStartPos = { x: 0, y: 0 };
+        let dragClone = null;
+        const DRAG_THRESHOLD = 5;
         
         // 内置模板
         const BUILTIN_TEMPLATE_CONTENT = `主轴24模版原点：X0,Y-25.5，示例点：24,-8.7 16.6,19.3 4,19.3 -18.3,17.8 -24,-8.7 -24,-8.7
@@ -1651,6 +1746,8 @@
 712810排气孔：11.5,-36.2 22.5,-30.6 -38,6.5 -22.5,-30.6
 712810定位孔：-12,-34 -33.3,-47.5
 
+主轴42模版原点：X0,Y-44，示例点：42,-13.2 26.5,35.1 6.3,32.4 -31.1,31.1 -42,-13.2
+
 特别版28.7模版原点：X0,Y-30.5，示例点：16.1,-25.4 28.7,-10.4 21.2,21.9 -4.6,22.8 -19.6,23.4 -28.7,-10.4 -16.1,-25.4
 338910沉孔：28,12.4 -24.5,-18.3
 339110沉孔：28,12.4 -24.5,-18.3
@@ -1706,6 +1803,8 @@
             let currentCategory = '';
             let currentTemplateName = '';
             let parsingTemplate = false;
+            let currentOrigin = null;
+            let currentPoints = '';
             
             for (let line of lines) {
                 line = line.trim();
@@ -2529,6 +2628,9 @@
             const generateStandardProgram = () => {
                 let prog = `$1\n`;
                 prog += `T0\n`;
+                prog += `M33S4=2000\n`;
+                prog += `M19\n`;
+                prog += `G98\n`;
                 prog += `G0Z50.0\n`;
                 prog += `X${(xSign * parseFloat(startDiameter)).toFixed(2)}C0.0\n`;
                 prog += `Z2.0\n`;
@@ -2588,7 +2690,7 @@
                     prevPoint = point;
                 }
                 
-                prog += `G0Z50.0\nM30\n`;
+                prog += `G0Z50.0\nM35\n`;
                 
                 return prog;
             };
@@ -2648,6 +2750,7 @@
                 const template = templates[templateName];
                 
                 isCombinationMode = false;
+                isReversedFlag = false;
                 selectedTemplates = [templateName];
                 updateSelectedTemplatesDisplay();
                 
@@ -2827,7 +2930,7 @@
             if (points.length > 0) calculateAll();
         }
         
-        // ========== 点管理函数 ==========
+        // ========== 点管理函数（支持拖拽排序） ==========
         function updateStartPoint() {
             const startX = parseFloat(document.getElementById('startX').value);
             const startY = parseFloat(document.getElementById('startY').value);
@@ -2862,42 +2965,88 @@
             }
         }
         
+        // 【核心修改】支持拖拽排序的 updatePointsDisplay 函数，保留原有“点 X”格式、XY一行布局
         function updatePointsDisplay() {
             const container = document.getElementById('points-container');
             container.innerHTML = '';
             
+            // 渲染主点（整个列表项可拖拽）
             points.forEach((point, index) => {
                 const div = document.createElement('div');
-                div.className = 'point-item';
+                div.className = 'list-item';
+                div.setAttribute('data-index', index);
                 
+                // 点号标签（仅显示，不绑定拖拽）
+                const labelSpan = document.createElement('div');
+                labelSpan.className = 'point-label';
                 let pointLabel = `点 ${index + 1}`;
                 if (isCombinationMode) {
                     let templateIndex = 0;
                     let pointCount = 0;
-                    
                     for (let i = 0; i < selectedTemplates.length; i++) {
                         const templateName = selectedTemplates[i];
                         const templatePoints = templates[templateName]?.points || [];
-                        
                         if (index < pointCount + templatePoints.length) {
                             templateIndex = i;
                             break;
                         }
                         pointCount += templatePoints.length;
                     }
-                    
                     pointLabel = `点 ${templateIndex + 1}-${index - pointCount + 1}`;
                 }
+                labelSpan.innerText = pointLabel;
                 
-                div.innerHTML = `
-                    <span>${pointLabel}:</span>
-                    <input type="number" value="${point.x}" onchange="updatePoint(${index}, 'x', this.value)" step="0.1" inputmode="decimal">
-                    <input type="number" value="${point.y}" onchange="updatePoint(${index}, 'y', this.value)" step="0.1" inputmode="decimal">
-                    <button onclick="removePoint(${index})" class="btn-red">删除</button>
-                `;
+                // X坐标输入框
+                const xDiv = document.createElement('div');
+                xDiv.className = 'coord-input';
+                const xInput = document.createElement('input');
+                xInput.type = 'number';
+                xInput.value = point.x;
+                xInput.step = 0.1;
+                xInput.onchange = (e) => { point.x = parseFloat(e.target.value) || 0; calculateAll(); };
+                xDiv.appendChild(xInput);
+                
+                // Y坐标输入框
+                const yDiv = document.createElement('div');
+                yDiv.className = 'coord-input';
+                const yInput = document.createElement('input');
+                yInput.type = 'number';
+                yInput.value = point.y;
+                yInput.step = 0.1;
+                yInput.onchange = (e) => { point.y = parseFloat(e.target.value) || 0; calculateAll(); };
+                yDiv.appendChild(yInput);
+                
+                // 删除按钮
+                const delBtn = document.createElement('button');
+                delBtn.textContent = '删除';
+                delBtn.className = 'btn-red delete-btn';
+                delBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    points.splice(index, 1);
+                    updatePointsDisplay();
+                    calculateAll();
+                };
+                
+                div.appendChild(labelSpan);
+                div.appendChild(xDiv);
+                div.appendChild(yDiv);
+                div.appendChild(delBtn);
+                
+                // 整个 div 可拖拽，但需过滤输入框和按钮的交互
+                div.addEventListener('mousedown', (e) => {
+                    if (e.target.tagName === 'INPUT' || e.target.tagName === 'BUTTON') return;
+                    startDrag(e, index);
+                });
+                div.addEventListener('touchstart', (e) => {
+                    if (e.target.tagName === 'INPUT' || e.target.tagName === 'BUTTON') return;
+                    e.preventDefault();
+                    startDrag(e, index);
+                });
+                
                 container.appendChild(div);
             });
             
+            // 附加点渲染保持不变（使用原有的 .point-item）
             const groupedAdditionalPoints = {};
             additionalPoints.forEach(point => {
                 if (!groupedAdditionalPoints[point.index]) {
@@ -2908,7 +3057,6 @@
             
             Object.keys(groupedAdditionalPoints).sort((a, b) => a - b).forEach(index => {
                 const pointsInGroup = groupedAdditionalPoints[index];
-                
                 const groupHeader = document.createElement('div');
                 groupHeader.style.padding = '5px 10px';
                 groupHeader.style.backgroundColor = 'var(--code-bg)';
@@ -2923,7 +3071,6 @@
                     const div = document.createElement('div');
                     div.className = 'point-item';
                     div.style.backgroundColor = 'var(--code-bg)';
-                    
                     div.innerHTML = `
                         <span>点 ${index}-${point.subIndex || (subIndex + 1)} (附加点):</span>
                         <input type="number" value="${point.x}" onchange="updateAdditionalPoint(${additionalPoints.findIndex(p => p === point)}, 'x', this.value)" step="0.1" inputmode="decimal">
@@ -2935,6 +3082,96 @@
             });
         }
         
+        // ========== 新增：拖拽排序核心函数 ==========
+        function startDrag(e, idx) {
+            e.preventDefault();
+            dragStartIndex = idx;
+            isDragging = false;
+            const clientX = e.clientX ?? (e.touches ? e.touches[0].clientX : 0);
+            const clientY = e.clientY ?? (e.touches ? e.touches[0].clientY : 0);
+            dragStartPos = { x: clientX, y: clientY };
+            const dragItem = document.querySelector(`.list-item[data-index='${idx}']`);
+            if (dragItem) dragItem.classList.add('dragging-source');
+            window.addEventListener('mousemove', onDragMove);
+            window.addEventListener('mouseup', onDragEnd);
+            window.addEventListener('touchmove', onDragMove, { passive: false });
+            window.addEventListener('touchend', onDragEnd);
+        }
+        
+        function onDragMove(e) {
+            if (dragStartIndex === -1) return;
+            e.preventDefault();
+            const clientX = e.clientX ?? (e.touches ? e.touches[0].clientX : 0);
+            const clientY = e.clientY ?? (e.touches ? e.touches[0].clientY : 0);
+            if (!isDragging) {
+                const dx = clientX - dragStartPos.x;
+                const dy = clientY - dragStartPos.y;
+                if (Math.abs(dx) < DRAG_THRESHOLD && Math.abs(dy) < DRAG_THRESHOLD) return;
+                isDragging = true;
+                dragClone = document.getElementById('dragClone');
+                if (dragClone) {
+                    dragClone.style.display = 'block';
+                    let cloneLabel = `点 ${dragStartIndex + 1}`;
+                    if (isCombinationMode) {
+                        let ti = 0, pc = 0;
+                        for (let i = 0; i < selectedTemplates.length; i++) {
+                            const tplPts = templates[selectedTemplates[i]]?.points || [];
+                            if (dragStartIndex < pc + tplPts.length) { ti = i; break; }
+                            pc += tplPts.length;
+                        }
+                        cloneLabel = `点 ${ti + 1}-${dragStartIndex - pc + 1}`;
+                    }
+                    dragClone.innerHTML = cloneLabel;
+                    dragClone.style.left = `${clientX - 20}px`;
+                    dragClone.style.top = `${clientY - 20}px`;
+                }
+            }
+            if (dragClone) {
+                dragClone.style.left = `${clientX - 20}px`;
+                dragClone.style.top = `${clientY - 20}px`;
+            }
+            const elemUnder = document.elementsFromPoint(clientX, clientY);
+            let targetItem = null;
+            for (let el of elemUnder) {
+                if (el.classList && el.classList.contains('list-item') && !el.classList.contains('dragging-source')) {
+                    targetItem = el;
+                    break;
+                }
+            }
+            document.querySelectorAll('.list-item').forEach(item => item.classList.remove('drag-over'));
+            if (targetItem) {
+                const targetIdx = parseInt(targetItem.getAttribute('data-index'));
+                if (!isNaN(targetIdx) && targetIdx !== dragStartIndex) {
+                    dragOverIndex = targetIdx;
+                    targetItem.classList.add('drag-over');
+                } else dragOverIndex = -1;
+            } else dragOverIndex = -1;
+        }
+        
+        function onDragEnd(e) {
+            if (dragStartIndex !== -1 && isDragging && dragOverIndex !== -1 && dragOverIndex !== dragStartIndex) {
+                const element = points[dragStartIndex];
+                points.splice(dragStartIndex, 1);
+                points.splice(dragOverIndex, 0, element);
+                updatePointsDisplay();
+                calculateAll();
+            }
+            cleanupDrag();
+        }
+        
+        function cleanupDrag() {
+            isDragging = false;
+            if (dragClone) dragClone.style.display = 'none';
+            document.querySelectorAll('.list-item').forEach(item => item.classList.remove('dragging-source', 'drag-over'));
+            dragStartIndex = -1;
+            dragOverIndex = -1;
+            window.removeEventListener('mousemove', onDragMove);
+            window.removeEventListener('mouseup', onDragEnd);
+            window.removeEventListener('touchmove', onDragMove);
+            window.removeEventListener('touchend', onDragEnd);
+        }
+        
+        // 辅助函数（用于更新 points 数组中的坐标，由原有代码调用）
         function updatePoint(index, coord, value) {
             const num = parseFloat(value);
             if (!isNaN(num)) {
@@ -2957,6 +3194,7 @@
             points = [];
             additionalPoints = [];
             isCombinationMode = false;
+            isReversedFlag = false;
             selectedTemplates = [];
             templatePointGroups = [];
             updateSelectedTemplatesDisplay();
@@ -2994,14 +3232,15 @@
         }
         
         function reversePoints() {
-            points.reverse();
-            updatePointsDisplay();
-            calculateAll();
-            
-            if (isMobile && navigator.vibrate) {
-                navigator.vibrate(50);
-            }
+        points.reverse();
+        isReversedFlag = !isReversedFlag;  // 切换反转标志
+        updatePointsDisplay();
+        calculateAll();
+        
+        if (isMobile && navigator.vibrate) {
+            navigator.vibrate(50);
         }
+    }
         
         // ========== 计算函数 ==========
         function calculateDistance(point1, point2) {
@@ -3056,7 +3295,7 @@
             let prevPoint = A;
             let allPoints = [...points];
             
-            // 按顺序处理所有点（包括附加点）
+            // 附加点插入逻辑（保持不变）
             if (additionalPoints.length > 0) {
                 const groupedAdditionalPoints = {};
                 additionalPoints.forEach(point => {
@@ -3068,7 +3307,6 @@
                 
                 let newAllPoints = [];
                 let mainPointIndex = 0;
-                
                 Object.keys(groupedAdditionalPoints).sort((a, b) => a - b).forEach(index => {
                     const insertIndex = parseInt(index);
                     while (mainPointIndex < insertIndex && mainPointIndex < points.length) {
@@ -3079,22 +3317,22 @@
                         newAllPoints.push(point);
                     });
                 });
-                
                 while (mainPointIndex < points.length) {
                     newAllPoints.push(points[mainPointIndex]);
                     mainPointIndex++;
                 }
-                
                 allPoints = newAllPoints;
             }
             
-            allPoints.forEach((point, index) => {
+            // 计算扇形（注意：方向由绘制函数决定，这里只存储角度绝对值）
+            for (let i = 0; i < allPoints.length; i++) {
+                const point = allPoints[i];
                 const angle = calculateSectorAngle(O, prevPoint, point);
                 const distance = calculateDistance(O, point);
                 const diameter = calculateDiameter(distance);
                 
                 calculatedResults.push({
-                    name: `扇形 ${index + 1}`,
+                    name: `扇形 ${i + 1}`,
                     start: { ...prevPoint },
                     end: { ...point },
                     distance: distance.toFixed(2),
@@ -3103,7 +3341,24 @@
                 });
                 
                 prevPoint = point;
-            });
+            }
+            
+            // 闭合扇形（从最后一个点回到起点 A）
+            if (allPoints.length > 0) {
+                const lastPoint = allPoints[allPoints.length - 1];
+                const closeAngle = calculateSectorAngle(O, lastPoint, A);
+                const closeDistance = calculateDistance(O, A);
+                const closeDiameter = calculateDiameter(closeDistance);
+                
+                calculatedResults.push({
+                    name: `扇形 闭合`,
+                    start: { ...lastPoint },
+                    end: { ...A },
+                    distance: closeDistance.toFixed(2),
+                    angle: closeAngle.toFixed(2),
+                    diameter: closeDiameter
+                });
+            }
             
             updateResultsTable(calculatedResults);
             if (canvasVisible) drawDiagram(calculatedResults);
@@ -3146,6 +3401,9 @@
             
             drawAxes(scale, offsetX, offsetY);
             
+            // 根据反转标志决定圆弧方向：未反转时逆时针(true)，反转后顺时针(false)
+            const anticlockwise = !isReversedFlag;  // 默认逆时针(true)，反转后顺时针(false)
+            
             results.forEach((result, index) => {
                 const start = result.start;
                 const end = result.end;
@@ -3158,12 +3416,24 @@
                 ctx.moveTo(oCanvas.x, oCanvas.y);
                 ctx.lineTo(startCanvas.x, startCanvas.y);
                 
-                const radius = Math.sqrt((startCanvas.x-oCanvas.x)**2 + (startCanvas.y-oCanvas.y)**2);
+                const radius = Math.hypot(startCanvas.x - oCanvas.x, startCanvas.y - oCanvas.y);
+                let startAngle = Math.atan2(startCanvas.y - oCanvas.y, startCanvas.x - oCanvas.x);
+                let endAngle = Math.atan2(endCanvas.y - oCanvas.y, endCanvas.x - oCanvas.x);
                 
-                const startAngle = Math.atan2(startCanvas.y-oCanvas.y, startCanvas.x-oCanvas.x);
-                const endAngle = Math.atan2(endCanvas.y-oCanvas.y, endCanvas.x-oCanvas.x);
+                // 确保圆弧方向正确
+                if (anticlockwise) {
+                    // 逆时针：需要 endAngle > startAngle
+                    if (endAngle < startAngle) {
+                        endAngle += Math.PI * 2;
+                    }
+                } else {
+                    // 顺时针：需要 startAngle > endAngle
+                    if (startAngle < endAngle) {
+                        startAngle += Math.PI * 2;
+                    }
+                }
                 
-                ctx.arc(oCanvas.x, oCanvas.y, radius, startAngle, endAngle);
+                ctx.arc(oCanvas.x, oCanvas.y, radius, startAngle, endAngle, anticlockwise);
                 ctx.lineTo(oCanvas.x, oCanvas.y);
                 
                 const colors = ['#4285f4', '#0f9d58', '#ea4335', '#ff9800', '#9c27b0'];
@@ -3171,9 +3441,12 @@
                 ctx.lineWidth = 2;
                 ctx.stroke();
                 
-                const midAngle = (startAngle + endAngle) / 2;
+                // 角度标签位置取中间角
+                let midAngle = (startAngle + endAngle) / 2;
+                if (!anticlockwise && startAngle > endAngle) {
+                    midAngle = (startAngle + endAngle) / 2;
+                }
                 const labelRadius = radius * 0.5;
-                
                 ctx.fillStyle = getComputedStyle(document.documentElement)
                     .getPropertyValue('--canvas-text-color').trim();
                 ctx.font = '12px Arial';
@@ -3184,13 +3457,13 @@
                 );
             });
             
+            // 绘制点标注（保持不变）
             function drawPoint(x, y, label, color, size = 4) {
                 const p = toCanvas(x, y);
                 ctx.beginPath();
-                ctx.arc(p.x, p.y, size, 0, Math.PI*2);
+                ctx.arc(p.x, p.y, size, 0, Math.PI * 2);
                 ctx.fillStyle = color;
                 ctx.fill();
-                
                 ctx.fillStyle = getComputedStyle(document.documentElement)
                     .getPropertyValue('--canvas-text-color').trim();
                 ctx.font = '10px Arial';
@@ -3201,31 +3474,26 @@
             drawPoint(A.x, A.y, `起点 (${A.x},${A.y})`, '#ea4335', 5);
             
             points.forEach((point, index) => {
-                let pointLabel = `点${index+1}`;
+                let pointLabel = `点${index + 1}`;
                 if (isCombinationMode) {
-                    let templateIndex = 0;
-                    let pointCount = 0;
-                    
+                    let templateIndex = 0, pointCount = 0;
                     for (let i = 0; i < selectedTemplates.length; i++) {
                         const templateName = selectedTemplates[i];
                         const templatePoints = templates[templateName]?.points || [];
-                        
                         if (index < pointCount + templatePoints.length) {
                             templateIndex = i;
                             break;
                         }
                         pointCount += templatePoints.length;
                     }
-                    
                     pointLabel = `点${templateIndex + 1}-${index - pointCount + 1}`;
                 }
-                
                 drawPoint(point.x, point.y, `${pointLabel} (${point.x},${point.y})`, '#4285f4', 4);
             });
             
-            additionalPoints.forEach((point, index) => {
-                const pointLabel = `点${point.index}-${point.subIndex || (getAdditionalPointsByIndex(point.index).findIndex(p => p === point) + 1)}`;
-                drawPoint(point.x, point.y, `${pointLabel} (${point.x},${point.y})`, '#ff9800', 4);
+            additionalPoints.forEach((point) => {
+                const label = `点${point.index}-${point.subIndex || 1}`;
+                drawPoint(point.x, point.y, `${label} (${point.x},${point.y})`, '#ff9800', 4);
             });
         }
 
@@ -3332,7 +3600,7 @@
                     loadTemplate('主轴33', true);
                 }
                 
-                console.log('五孔计算器 v2.4 初始化完成 - 使用内置模板，已修复角度方向问题');
+                console.log('五孔计算器 v2.4 初始化完成 - 支持拖拽排序，保留原有全部功能');
             } catch (error) {
                 console.error('初始化错误:', error);
                 alert('初始化失败，请刷新页面重试');
